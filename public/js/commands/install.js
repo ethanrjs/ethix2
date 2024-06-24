@@ -1,46 +1,119 @@
 // install.js
-import { registerCommand, addOutputLine } from '../terminal.js';
+import {
+    registerCommand,
+    addOutputLine,
+    getCurrentDirectory
+} from '../terminal.js';
 import {
     fileSystem,
     createDirectory,
     createFile,
-    saveFileSystem
+    saveFileSystem,
+    getDirectoryContents
 } from '../fileSystem.js';
+import { registerCommandDescription } from './help.js';
 
 registerCommand('install', 'Install a package', async args => {
     if (args.length === 0) {
-        addOutputLine('Usage: install <package-name>');
+        addOutputLine(
+            'Usage: install <package-name> or install <package-path>',
+            { color: 'red' }
+        );
         return;
     }
-    const packageName = args[0];
+
+    const packageNameOrPath = args[0];
     const packagesDir = fileSystem['/'].contents['packages'].contents;
-    if (packagesDir[packageName]) {
-        addOutputLine(`Package ${packageName} is already installed.`);
-    } else {
-        addOutputLine(`Fetching package ${packageName}...`);
-        try {
-            const response = await fetch(`/api/packages/${packageName}`);
-            if (!response.ok) throw new Error('Package not found');
-            const packageData = await response.json();
 
-            createDirectory(`/packages/${packageName}`);
-            createFile(`/packages/${packageName}/index.js`, packageData.code);
+    if (packagesDir[packageNameOrPath]) {
+        addOutputLine(`Package ${packageNameOrPath} is already installed.`, {
+            color: 'yellow'
+        });
+        return;
+    }
+
+    // Check if it's a local package
+    const currentDir = getCurrentDirectory();
+    const localPackagePath = `${currentDir}/${packageNameOrPath}`.replace(
+        /\/+/g,
+        '/'
+    );
+    const localPackageContents = getDirectoryContents(localPackagePath);
+
+    if (localPackageContents) {
+        // Local package installation
+        addOutputLine(`Installing local package from ${localPackagePath}...`, {
+            color: 'cyan'
+        });
+
+        const packageJsonContent =
+            localPackageContents['package.json']?.content;
+        if (!packageJsonContent) {
             addOutputLine(
-                `Successfully installed ${packageName} to /packages/${packageName}`
+                'Error: package.json not found in the package directory.',
+                { color: 'red' }
             );
-            saveFileSystem();
+            return;
+        }
 
-            // Execute the package
-            try {
-                eval(packageData.code);
-                addOutputLine(`Package ${packageName} executed successfully.`);
-            } catch (execError) {
-                addOutputLine(
-                    `Error executing package ${packageName}: ${execError.message}`
-                );
-            }
+        const packageInfo = JSON.parse(packageJsonContent);
+        const packageName = packageInfo.name;
+
+        createDirectory(`/packages/${packageName}`);
+        Object.entries(localPackageContents).forEach(([fileName, fileData]) => {
+            createFile(
+                `/packages/${packageName}/${fileName}`,
+                fileData.content
+            );
+        });
+
+        addOutputLine(`Local package ${packageName} installed successfully.`, {
+            color: 'green'
+        });
+    } else {
+        // Remote package installation (simulated)
+        addOutputLine(`Fetching package ${packageNameOrPath}...`, {
+            color: 'cyan'
+        });
+        try {
+            // Simulated remote package data
+            const packageData = {
+                name: packageNameOrPath,
+                version: '1.0.0',
+                description: `A sample remote package: ${packageNameOrPath}`,
+                code: `console.log('Hello from ${packageNameOrPath}!');\n\nmodule.exports = {\n  greet: () => console.log('Greetings from ${packageNameOrPath}!')\n};`
+            };
+
+            createDirectory(`/packages/${packageNameOrPath}`);
+            createFile(
+                `/packages/${packageNameOrPath}/package.json`,
+                JSON.stringify(
+                    {
+                        name: packageData.name,
+                        version: packageData.version,
+                        description: packageData.description
+                    },
+                    null,
+                    2
+                )
+            );
+            createFile(
+                `/packages/${packageNameOrPath}/index.js`,
+                packageData.code
+            );
+
+            addOutputLine(
+                `Package ${packageNameOrPath} installed successfully.`,
+                { color: 'green' }
+            );
         } catch (error) {
-            addOutputLine(`Error installing package: ${error.message}`);
+            addOutputLine(`Error installing package: ${error.message}`, {
+                color: 'red'
+            });
         }
     }
+
+    saveFileSystem();
 });
+
+registerCommandDescription('install', 'Install a package (local or remote)');

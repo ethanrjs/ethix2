@@ -32,45 +32,52 @@ const STYLES = {
     strikethrough: 'text-decoration: line-through;'
 };
 
-export function addOutputLine(text, options = {}) {
+export function addOutputLine(segments, options = {}) {
     const line = document.createElement('div');
     line.className = 'output-line';
 
-    let styledText = text;
+    let content = '';
 
-    if (options.color && COLORS[options.color]) {
-        styledText = `<span style="color: ${
-            COLORS[options.color]
-        };">${styledText}</span>`;
-    }
+    if (Array.isArray(segments)) {
+        segments.forEach(segment => {
+            const { text, color, backgroundColor, style } = segment;
+            let styledText = text;
 
-    if (options.backgroundColor && COLORS[options.backgroundColor]) {
-        styledText = `<span style="background-color: ${
-            COLORS[options.backgroundColor]
-        };">${styledText}</span>`;
-    }
+            if (color && COLORS[color]) {
+                styledText = `<span style="color: ${COLORS[color]};">${styledText}</span>`;
+            }
 
-    if (options.style) {
-        const styles = options.style
-            .split(',')
-            .map(s => STYLES[s.trim()])
-            .filter(Boolean);
-        if (styles.length > 0) {
-            styledText = `<span style="${styles.join(
-                ' '
-            )}">${styledText}</span>`;
-        }
+            if (backgroundColor && COLORS[backgroundColor]) {
+                styledText = `<span style="background-color: ${COLORS[backgroundColor]};">${styledText}</span>`;
+            }
+
+            if (style) {
+                const styles = style
+                    .split(',')
+                    .map(s => STYLES[s.trim()])
+                    .filter(Boolean);
+                if (styles.length > 0) {
+                    styledText = `<span style="${styles.join(
+                        ' '
+                    )}">${styledText}</span>`;
+                }
+            }
+
+            content += styledText;
+        });
+    } else {
+        content = segments; // Fallback for single-string input
     }
 
     if (options.isCommand) {
-        styledText = promptElement.textContent + ' ' + styledText;
+        content = promptElement.textContent + ' ' + content;
     }
 
     if (options.ascii) {
-        styledText = `<pre>${styledText}</pre>`;
+        content = `<pre>${content}</pre>`;
     }
 
-    line.innerHTML = styledText;
+    line.innerHTML = content;
     output.appendChild(line);
     terminal.scrollTop = terminal.scrollHeight;
 }
@@ -101,6 +108,11 @@ function moveCursorToEnd() {
     range.collapse(false);
     sel.removeAllRanges();
     sel.addRange(range);
+}
+
+function getTimestamp() {
+    const now = new Date();
+    return now.toLocaleTimeString('en-US', { hour12: false });
 }
 
 inputElement.addEventListener('input', () => {
@@ -162,10 +174,14 @@ document.addEventListener('click', () => {
 });
 
 async function loadCommandModules() {
-    addOutputLine('\nLoading command modules...', {
-        color: 'yellow',
-        style: 'bold'
-    });
+    addOutputLine([
+        {
+            text: '\nLoading command modules... ',
+            color: 'yellow',
+            style: 'bold'
+        },
+        { text: `[${getTimestamp()}]`, color: 'gray' }
+    ]);
 
     try {
         const response = await fetch('/api/command-modules');
@@ -179,11 +195,21 @@ async function loadCommandModules() {
         }
 
         for (const module of modules) {
+            const startTime = performance.now();
             try {
                 await import(`/js/commands/${module}`);
-                addOutputLine(`  ✓ ${module}`, { color: 'green' });
-            } catch (moduleEwrror) {
-                addOutputLine(`  ✗ ${module}`, { color: 'red' });
+                const endTime = performance.now();
+                const loadTime = (endTime - startTime).toFixed(2);
+                addOutputLine([
+                    { text: `  ✓ ${module}`, color: 'green' },
+                    { text: ` (${loadTime}ms)`, color: 'gray' },
+                    { text: ` [${getTimestamp()}]`, color: 'gray' }
+                ]);
+            } catch (moduleError) {
+                addOutputLine([
+                    { text: `  ✗ ${module}`, color: 'red' },
+                    { text: ` [${getTimestamp()}]`, color: 'gray' }
+                ]);
                 addOutputLine(`    Error: ${moduleError.message}`, {
                     color: 'red',
                     style: 'italic'
@@ -191,15 +217,23 @@ async function loadCommandModules() {
             }
         }
 
-        addOutputLine('\nCommand modules loaded successfully.', {
-            color: 'green',
-            style: 'bold'
-        });
+        addOutputLine([
+            {
+                text: '\nCommand modules loaded successfully. ',
+                color: 'green',
+                style: 'bold'
+            },
+            { text: `[${getTimestamp()}]`, color: 'gray' }
+        ]);
     } catch (error) {
-        addOutputLine('\nError loading command modules:', {
-            color: 'red',
-            style: 'bold'
-        });
+        addOutputLine([
+            {
+                text: '\nError loading command modules: ',
+                color: 'red',
+                style: 'bold'
+            },
+            { text: `[${getTimestamp()}]`, color: 'gray' }
+        ]);
         addOutputLine(`  ${error.message}`, { color: 'red' });
     }
 
