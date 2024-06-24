@@ -10,6 +10,7 @@ const inputElement = document.getElementById('input');
 let currentDirectory = '/';
 let commandHistory = [];
 let historyIndex = -1;
+let isEditMode = false;
 
 const commands = {};
 
@@ -259,6 +260,61 @@ export function setCurrentDirectory(newDir) {
 }
 
 initializeTerminal();
+
+export function enterEditMode(fileName, initialContent, saveCallback) {
+    isEditMode = true;
+    terminal.innerHTML = '';
+
+    const editorContainer = document.createElement('div');
+    editorContainer.id = 'editor-container';
+    editorContainer.style.height = '100%';
+    editorContainer.style.display = 'flex';
+    editorContainer.style.flexDirection = 'column';
+
+    const editorHeader = document.createElement('div');
+    editorHeader.textContent = `Editing: ${fileName} (Press Ctrl+S to save, Ctrl+Q to quit)`;
+    editorHeader.style.padding = '5px';
+    editorHeader.style.backgroundColor = '#333';
+    editorHeader.style.color = '#fff';
+
+    const editorTextarea = document.createElement('textarea');
+    editorTextarea.value = initialContent;
+    editorTextarea.style.flexGrow = '1';
+    editorTextarea.style.width = '100%';
+    editorTextarea.style.backgroundColor = '#1e1e1e';
+    editorTextarea.style.color = '#f0f0f0';
+    editorTextarea.style.border = 'none';
+    editorTextarea.style.padding = '10px';
+    editorTextarea.style.fontFamily = 'monospace';
+    editorTextarea.style.fontSize = '14px';
+    editorTextarea.style.resize = 'none';
+    editorTextarea.style.outline = 'none';
+    editorTextarea.spellcheck = 'false'; // this isn't working??????????????
+
+    editorContainer.appendChild(editorHeader);
+    editorContainer.appendChild(editorTextarea);
+    terminal.appendChild(editorContainer);
+
+    editorTextarea.focus();
+
+    editorTextarea.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            saveCallback(editorTextarea.value);
+        } else if (e.ctrlKey && e.key === 'q') {
+            e.preventDefault();
+            exitEditMode();
+        }
+    });
+}
+
+export function exitEditMode() {
+    isEditMode = false;
+    terminal.innerHTML = '';
+    terminal.appendChild(output);
+    terminal.appendChild(inputLine);
+    inputElement.focus();
+}
 
 // Expose necessary functions and variables
 export { fileSystem, updatePrompt };

@@ -65,6 +65,52 @@ function createFile(path, content) {
     return true;
 }
 
+export function getFileContents(path) {
+    const parts = path.split('/').filter(Boolean);
+    const fileName = parts.pop();
+    let current = fileSystem['/'];
+    for (const part of parts) {
+        if (
+            !current.contents[part] ||
+            current.contents[part].type !== 'directory'
+        ) {
+            return null;
+        }
+        current = current.contents[part];
+    }
+    if (
+        current.contents[fileName] &&
+        current.contents[fileName].type === 'file'
+    ) {
+        return current.contents[fileName].content;
+    }
+    return null;
+}
+
+export function saveFile(path, content) {
+    const parts = path.split('/').filter(Boolean);
+    const fileName = parts.pop();
+    let current = fileSystem['/'];
+    for (const part of parts) {
+        if (
+            !current.contents[part] ||
+            current.contents[part].type !== 'directory'
+        ) {
+            return false;
+        }
+        current = current.contents[part];
+    }
+    if (
+        current.contents[fileName] &&
+        current.contents[fileName].type === 'file'
+    ) {
+        current.contents[fileName].content = content;
+        saveFileSystem();
+        return true;
+    }
+    return false;
+}
+
 function deleteItem(path) {
     const parts = path.split('/').filter(Boolean);
     const itemName = parts.pop();
