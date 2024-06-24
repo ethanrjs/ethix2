@@ -85,7 +85,7 @@ registerCommand('ls', 'List directory contents', args => {
                         case 'size':
                             return item.size.length;
                         case 'modified':
-                            return item.modifiedDate.length + 2;
+                            return item.modifiedDate.length + 1;
                         case 'name':
                             return item.name.length;
                         default:
@@ -98,7 +98,9 @@ registerCommand('ls', 'List directory contents', args => {
 
         // Header
         const headerLine = headers
-            .map(header => padRight(header, maxLengths[header.toLowerCase()]))
+            .map(header =>
+                padRight(header, maxLengths[header.toLowerCase()] - 1)
+            ) // god only knows why the -1 is needed to fix the name column
             .join(' ');
         addOutputLine(headerLine, { color: 'gray' });
 
