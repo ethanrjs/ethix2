@@ -61,7 +61,12 @@ function createFile(path, content) {
         }
         current = current.contents[part];
     }
-    current.contents[fileName] = { type: 'file', content };
+    current.contents[fileName] = {
+        type: 'file',
+        content,
+        size: new TextEncoder().encode(content).length // Calculate size in bytes
+    };
+    saveFileSystem();
     return true;
 }
 
@@ -105,6 +110,9 @@ export function saveFile(path, content) {
         current.contents[fileName].type === 'file'
     ) {
         current.contents[fileName].content = content;
+        current.contents[fileName].size = new TextEncoder().encode(
+            content
+        ).length;
         saveFileSystem();
         return true;
     }
@@ -126,9 +134,32 @@ function deleteItem(path) {
     }
     if (current.contents[itemName]) {
         delete current.contents[itemName];
+        saveFileSystem();
         return true;
     }
     return false;
+}
+
+function getFileSize(path) {
+    const parts = path.split('/').filter(Boolean);
+    const fileName = parts.pop();
+    let current = fileSystem['/'];
+    for (const part of parts) {
+        if (
+            !current.contents[part] ||
+            current.contents[part].type !== 'directory'
+        ) {
+            return null;
+        }
+        current = current.contents[part];
+    }
+    if (
+        current.contents[fileName] &&
+        current.contents[fileName].type === 'file'
+    ) {
+        return current.contents[fileName].size;
+    }
+    return null;
 }
 
 export {
@@ -137,5 +168,6 @@ export {
     getDirectoryContents,
     createDirectory,
     createFile,
-    deleteItem
+    deleteItem,
+    getFileSize
 };

@@ -39,7 +39,14 @@ function formatSize(size) {
         size /= 1024;
         unitIndex++;
     }
-    return `${size.toFixed(1)}${units[unitIndex]}`;
+
+    if (unitIndex === 0) {
+        // For bytes, return without decimal places
+        return `${Math.round(size)}${units[unitIndex]}`;
+    } else {
+        // For KB and above, keep one decimal place
+        return `${size.toFixed(1)}${units[unitIndex]}`;
+    }
 }
 
 function padRight(str, length) {
