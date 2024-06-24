@@ -57,7 +57,7 @@ registerCommand('ls', 'List directory contents', args => {
 
         const items = Object.entries(contents).map(([name, item]) => {
             const itemType = item.type === 'directory' ? 'd' : '-';
-            const permissions = 'rwxr-xr-x'; // Simulated permissions
+            const permissions = 'rwxrwxrwx'; // Simulated permissions i cba to add permissions to this tbh
             const size = formatSize(item.size || 0);
             const modifiedDate = formatDate(item.modifiedDate || Date.now());
             return {
