@@ -285,11 +285,13 @@ export function enterEditMode(fileName, initialContent, saveCallback) {
     editorTextarea.style.color = '#f0f0f0';
     editorTextarea.style.border = 'none';
     editorTextarea.style.padding = '10px';
-    editorTextarea.style.fontFamily = 'monospace';
-    editorTextarea.style.fontSize = '14px';
+    editorTextarea.style.fontSize = '16px';
     editorTextarea.style.resize = 'none';
     editorTextarea.style.outline = 'none';
-    editorTextarea.spellcheck = 'false'; // this isn't working??????????????
+    editorTextarea.style.fontFamily = 'IBM Plex Mono, monospace';
+    editorTextarea.spellcheck = false;
+    editorTextarea.setAttribute('autocorrect', 'off'); // Additional attribute to disable autocorrect
+    editorTextarea.setAttribute('autocapitalize', 'off'); // Additional attribute to disable autocapitalize
 
     editorContainer.appendChild(editorHeader);
     editorContainer.appendChild(editorTextarea);
