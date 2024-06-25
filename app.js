@@ -7,13 +7,14 @@ const packageRepository = require('./package-repository');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Serve static files from the 'public' directory
 app.use(express.static('public'));
 
-// Parse JSON bodies
+app.get('/js/terminalAPI.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'js', 'terminalAPI.js'));
+});
+
 app.use(express.json());
 
-// API endpoint to get the list of command modules
 app.get('/api/command-modules', async (req, res) => {
     try {
         const commandsDir = path.join(__dirname, 'public', 'js', 'commands');
@@ -26,7 +27,6 @@ app.get('/api/command-modules', async (req, res) => {
     }
 });
 
-// API endpoint to get package information
 app.get('/api/packages/:packageName', (req, res) => {
     const packageName = req.params.packageName;
     const packageInfo = packageRepository.getPackage(packageName);
@@ -38,13 +38,11 @@ app.get('/api/packages/:packageName', (req, res) => {
     }
 });
 
-// API endpoint to get all packages
 app.get('/api/packages', (req, res) => {
     const packages = packageRepository.getAllPackages();
     res.json(packages);
 });
 
-// API endpoint to create or update a package
 app.post('/api/packages', async (req, res) => {
     try {
         const packageInfo = req.body;
@@ -56,7 +54,6 @@ app.post('/api/packages', async (req, res) => {
     }
 });
 
-// API endpoint to delete a package
 app.delete('/api/packages/:packageName', async (req, res) => {
     try {
         const packageName = req.params.packageName;

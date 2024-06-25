@@ -1,5 +1,6 @@
 // terminal.js
 import { fileSystem, saveFileSystem } from './fileSystem.js';
+import { terminalAPI } from './terminalAPI.js';
 
 const terminal = document.getElementById('terminal');
 const output = document.getElementById('output');
@@ -130,6 +131,12 @@ inputElement.addEventListener('keydown', e => {
             commandHistory.unshift(command);
             historyIndex = -1;
             inputElement.textContent = '';
+
+            // Check if there are any pending input callbacks
+            if (terminalAPI.inputCallbacks.length > 0) {
+                const callback = terminalAPI.inputCallbacks.shift();
+                callback(command);
+            }
         }
     } else if (e.key === 'ArrowUp') {
         e.preventDefault();
@@ -168,11 +175,6 @@ function autocomplete() {
         matches.forEach(match => addOutputLine('  ' + match));
     }
 }
-
-// Ensure input stays focused
-document.addEventListener('click', () => {
-    inputElement.focus();
-});
 
 async function loadCommandModules() {
     addOutputLine([
@@ -244,7 +246,6 @@ async function loadCommandModules() {
 // Initialize terminal
 export async function initializeTerminal() {
     await loadCommandModules();
-    addOutputLine('Welcome to the Improved Browser Terminal!');
     addOutputLine('Type "help" for a list of available commands.');
     updatePrompt();
     inputElement.focus();

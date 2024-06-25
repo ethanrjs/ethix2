@@ -9,17 +9,10 @@ import {
     createDirectory,
     createFile,
     saveFileSystem,
-    getDirectoryContents
+    getDirectoryContents,
+    getFileContents
 } from '../fileSystem.js';
-import { registerCommandDescription } from './help.js';
-
-async function fetchPackageInfo(packageName) {
-    const response = await fetch(`/api/packages/${packageName}`);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch package info for ${packageName}`);
-    }
-    return await response.json();
-}
+import { terminalAPI } from '../terminalAPI.js';
 
 registerCommand('install', 'Install a package', async args => {
     if (args.length === 0) {
@@ -40,7 +33,6 @@ registerCommand('install', 'Install a package', async args => {
         return;
     }
 
-    // Check if it's a local package
     const currentDir = getCurrentDirectory();
     const localPackagePath = `${currentDir}/${packageNameOrPath}`.replace(
         /\/+/g,
@@ -49,7 +41,6 @@ registerCommand('install', 'Install a package', async args => {
     const localPackageContents = getDirectoryContents(localPackagePath);
 
     if (localPackageContents) {
-        // Local package installation
         addOutputLine(`Installing local package from ${localPackagePath}...`, {
             color: 'cyan'
         });
@@ -78,13 +69,31 @@ registerCommand('install', 'Install a package', async args => {
         addOutputLine(`Local package ${packageName} installed successfully.`, {
             color: 'green'
         });
+
+        await runPackageInitialization(packageName);
     } else {
-        // Remote package installation
         addOutputLine(`Fetching package ${packageNameOrPath}...`, {
             color: 'cyan'
         });
         try {
-            const packageData = await fetchPackageInfo(packageNameOrPath);
+            const packageData = {
+                name: packageNameOrPath,
+                version: '1.0.0',
+                description: `A sample remote package: ${packageNameOrPath}`,
+                main: 'index.js',
+                code: `
+                    import { terminalAPI } from './terminalAPI.js';
+                    
+                    export function init() {
+                        terminalAPI.writeLine('Hello from ${packageNameOrPath}!', { color: 'green' });
+                        terminalAPI.writeLine('This is an automatically generated welcome message.', { color: 'cyan' });
+                    }
+                    
+                    export default {
+                        greet: () => terminalAPI.writeLine('Greetings from ${packageNameOrPath}!', { color: 'yellow' })
+                    };
+                `
+            };
 
             createDirectory(`/packages/${packageNameOrPath}`);
             createFile(
@@ -93,14 +102,15 @@ registerCommand('install', 'Install a package', async args => {
                     {
                         name: packageData.name,
                         version: packageData.version,
-                        description: packageData.description
+                        description: packageData.description,
+                        main: packageData.main
                     },
                     null,
                     2
                 )
             );
             createFile(
-                `/packages/${packageNameOrPath}/index.js`,
+                `/packages/${packageNameOrPath}/${packageData.main}`,
                 packageData.code
             );
 
@@ -108,6 +118,8 @@ registerCommand('install', 'Install a package', async args => {
                 `Package ${packageNameOrPath} installed successfully.`,
                 { color: 'green' }
             );
+
+            await runPackageInitialization(packageNameOrPath);
         } catch (error) {
             addOutputLine(`Error installing package: ${error.message}`, {
                 color: 'red'
@@ -118,4 +130,55 @@ registerCommand('install', 'Install a package', async args => {
     saveFileSystem();
 });
 
-registerCommandDescription('install', 'Install a package (local or remote)');
+async function runPackageInitialization(packageName) {
+    const packagePath = `/packages/${packageName}`;
+    const packageJsonContent = getFileContents(`${packagePath}/package.json`);
+
+    if (packageJsonContent) {
+        const packageInfo = JSON.parse(packageJsonContent);
+        const mainFile = packageInfo.main || 'index.js';
+        const mainFilePath = `${packagePath}/${mainFile}`;
+        const mainFileContent = getFileContents(mainFilePath);
+
+        if (mainFileContent) {
+            try {
+                const executePkg = new Function(
+                    'terminalAPI',
+                    `
+                    return async function() {
+                        const module = { exports: {} };
+                        const exports = module.exports;
+                        ${mainFileContent}
+                        if (typeof module.exports.init === 'function') {
+                            await module.exports.init();
+                        }
+                        return module.exports;
+                    }
+                `
+                );
+
+                addOutputLine(`Running initialization for ${packageName}...`, {
+                    color: 'cyan'
+                });
+                const packageExports = await executePkg(terminalAPI)();
+
+                if (typeof packageExports.run === 'function') {
+                    registerCommand(
+                        packageName,
+                        `Run ${packageName} package`,
+                        packageExports.run
+                    );
+                    addOutputLine(
+                        `Registered '${packageName}' as a new command.`,
+                        { color: 'green' }
+                    );
+                }
+            } catch (error) {
+                addOutputLine(
+                    `Error initializing package ${packageName}: ${error.message}`,
+                    { color: 'red' }
+                );
+            }
+        }
+    }
+}
