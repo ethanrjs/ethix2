@@ -13,6 +13,14 @@ import {
 } from '../fileSystem.js';
 import { registerCommandDescription } from './help.js';
 
+async function fetchPackageInfo(packageName) {
+    const response = await fetch(`/api/packages/${packageName}`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch package info for ${packageName}`);
+    }
+    return await response.json();
+}
+
 registerCommand('install', 'Install a package', async args => {
     if (args.length === 0) {
         addOutputLine(
@@ -71,18 +79,12 @@ registerCommand('install', 'Install a package', async args => {
             color: 'green'
         });
     } else {
-        // Remote package installation (simulated)
+        // Remote package installation
         addOutputLine(`Fetching package ${packageNameOrPath}...`, {
             color: 'cyan'
         });
         try {
-            // Simulated remote package data
-            const packageData = {
-                name: packageNameOrPath,
-                version: '1.0.0',
-                description: `A sample remote package: ${packageNameOrPath}`,
-                code: `console.log('Hello from ${packageNameOrPath}!');\n\nmodule.exports = {\n  greet: () => console.log('Greetings from ${packageNameOrPath}!')\n};`
-            };
+            const packageData = await fetchPackageInfo(packageNameOrPath);
 
             createDirectory(`/packages/${packageNameOrPath}`);
             createFile(
