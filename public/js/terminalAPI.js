@@ -1,9 +1,12 @@
 // terminalAPI.js
+const output = document.getElementById('output');
+const terminal = document.getElementById('terminal');
 
 import {
     addOutputLine,
     getCurrentDirectory,
-    setCurrentDirectory
+    setCurrentDirectory,
+    inputElement
 } from './terminal.js';
 
 const COLORS = {
@@ -28,6 +31,7 @@ const STYLES = {
 class TerminalAPI {
     constructor() {
         this.inputCallbacks = [];
+        this.keyCallbacks = [];
     }
 
     write(text, options = {}) {
@@ -51,6 +55,17 @@ class TerminalAPI {
         return new Promise(resolve => {
             this.write(prompt, { color: 'cyan' });
             this.inputCallbacks.push(resolve);
+        });
+    }
+
+    async readKey() {
+        return new Promise(resolve => {
+            const handleKeyPress = event => {
+                event.preventDefault();
+                document.removeEventListener('keydown', handleKeyPress);
+                resolve(event.key);
+            };
+            document.addEventListener('keydown', handleKeyPress);
         });
     }
 
@@ -92,6 +107,59 @@ class TerminalAPI {
 
     getStyle(styleName) {
         return STYLES[styleName] || '';
+    }
+
+    clear() {
+        output.innerHTML = '';
+    }
+
+    setPrompt(prompt) {
+        const promptElement = document.getElementById('prompt');
+        if (promptElement) {
+            promptElement.textContent = prompt;
+        }
+    }
+
+    focusInput() {
+        inputElement.focus();
+    }
+
+    disableInput() {
+        inputElement.contentEditable = 'false';
+    }
+
+    enableInput() {
+        inputElement.contentEditable = 'true';
+    }
+
+    scrollToBottom() {
+        terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    async confirm(message) {
+        this.writeLine(message + ' (y/n)', { color: 'yellow' });
+        while (true) {
+            const response = await this.readKey();
+            if (response.toLowerCase() === 'y') return true;
+            if (response.toLowerCase() === 'n') return false;
+        }
+    }
+
+    async select(options, prompt = 'Select an option:') {
+        this.writeLine(prompt, { color: 'cyan' });
+        options.forEach((option, index) => {
+            this.writeLine(`${index + 1}. ${option}`, { color: 'white' });
+        });
+        while (true) {
+            const response = await this.readLine('Enter your choice: ');
+            const choice = parseInt(response);
+            if (choice > 0 && choice <= options.length) {
+                return options[choice - 1];
+            }
+            this.writeLine('Invalid choice. Please try again.', {
+                color: 'red'
+            });
+        }
     }
 }
 

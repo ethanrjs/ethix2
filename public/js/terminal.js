@@ -320,4 +320,4 @@ export function exitEditMode() {
 }
 
 // Expose necessary functions and variables
-export { fileSystem, updatePrompt };
+export { fileSystem, updatePrompt, inputElement };
