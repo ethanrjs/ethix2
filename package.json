@@ -1,16 +1,20 @@
 {
-  "name": "ethix",
-  "version": "1.0.0",
-  "main": "app.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "express": "^4.19.2",
-    "semver": "^7.6.2"
-  }
+    "name": "ethix",
+    "version": "1.0.0",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js",
+        "dev": "nodemon"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "express": "^4.19.2",
+        "semver": "^7.6.2"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.4"
+    }
 }
