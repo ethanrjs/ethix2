@@ -1,4 +1,3 @@
-// d.js
 import {
     registerCommand,
     addOutputLine,
@@ -23,45 +22,73 @@ function resolvePath(path) {
     return '/' + resolvedParts.join('/');
 }
 
-registerCommand('rm', 'Delete a file or directory', args => {
-    if (args.length === 0) {
-        addOutputLine('Usage: rm <file_or_directory>', { color: 'red' });
+function removeRecursive(path) {
+    const contents = getDirectoryContents(path);
+    if (contents) {
+        for (const [name, item] of Object.entries(contents)) {
+            const itemPath = `${path}/${name}`;
+            if (item.type === 'directory') {
+                removeRecursive(itemPath);
+            } else {
+                deleteItem(itemPath);
+            }
+        }
+    }
+    return deleteItem(path);
+}
+
+registerCommand('rm', 'Remove files or directories', args => {
+    let recursive = false;
+    let paths = [];
+
+    for (const arg of args) {
+        if (arg === '-r' || arg === '-R' || arg === '--recursive') {
+            recursive = true;
+        } else {
+            paths.push(arg);
+        }
+    }
+
+    if (paths.length === 0) {
+        addOutputLine({
+            text: 'Usage: rm [-r] <file_or_directory...>',
+            color: 'red'
+        });
         return;
     }
 
-    const path = resolvePath(args[0]);
-    const contents = getDirectoryContents(path);
+    for (const path of paths) {
+        const fullPath = resolvePath(path);
+        const contents = getDirectoryContents(fullPath);
 
-    if (contents === null) {
-        // It's a file or doesn't exist
-        if (deleteItem(path)) {
-            addOutputLine({ text: `Deleted file: ${path}`, color: 'green' });
-        } else {
-            addOutputLine({
-                text: `Error: Unable to delete ${path}. File may not exist.`,
-                color: 'red'
-            });
-        }
-    } else {
-        // It's a directory
-        if (
-            Object.keys(contents).length > 0 &&
-            !args.includes('-r') &&
-            !args.includes('--recursive')
-        ) {
-            addOutputLine({
-                text: `Error: ${path} is a directory. Use -r or --recursive to delete directories.`,
-                color: 'red'
-            });
-        } else {
-            if (deleteItem(path)) {
+        if (contents === null) {
+            if (deleteItem(fullPath)) {
                 addOutputLine({
-                    text: `Deleted directory: ${path}`,
+                    text: `Removed file: ${fullPath}`,
                     color: 'green'
                 });
             } else {
                 addOutputLine({
-                    text: `Error: Unable to delete ${path}.`,
+                    text: `Error: Unable to remove ${fullPath}. File may not exist.`,
+                    color: 'red'
+                });
+            }
+        } else {
+            if (recursive) {
+                if (removeRecursive(fullPath)) {
+                    addOutputLine({
+                        text: `Removed directory: ${fullPath}`,
+                        color: 'green'
+                    });
+                } else {
+                    addOutputLine({
+                        text: `Error: Unable to remove ${fullPath}.`,
+                        color: 'red'
+                    });
+                }
+            } else {
+                addOutputLine({
+                    text: `Error: ${fullPath} is a directory. Use -r to remove directories.`,
                     color: 'red'
                 });
             }
@@ -70,6 +97,6 @@ registerCommand('rm', 'Delete a file or directory', args => {
 });
 
 registerCommandDescription(
-    'd',
-    'Delete a file or directory (use -r or --recursive for directories)'
+    'rm',
+    'Remove files or directories. Use -r for recursive removal of directories.'
 );
