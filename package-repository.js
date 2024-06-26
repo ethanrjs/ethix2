@@ -1,28 +1,10 @@
-// Enhanced package repository
-
 const fs = require('fs').promises;
 const path = require('path');
+const semver = require('semver');
 
 class PackageRepository {
     constructor() {
-        this.packages = {
-            'example-package': {
-                name: 'example-package',
-                version: '1.0.0',
-                description: 'An example package',
-                code: 'console.log("Example package loaded!");'
-            },
-            'math-utils': {
-                name: 'math-utils',
-                version: '1.1.0',
-                description: 'Basic math utilities',
-                code: `
-                    function add(a, b) { return a + b; }
-                    function subtract(a, b) { return a - b; }
-                    console.log("Math utilities loaded!");
-                `
-            }
-        };
+        this.packages = {};
         this.packagesDir = path.join(__dirname, 'packages');
     }
 
@@ -45,7 +27,11 @@ class PackageRepository {
                         'utf-8'
                     );
                     const packageInfo = JSON.parse(packageData);
-                    this.packages[packageInfo.name] = packageInfo;
+                    const [name, version] = packageInfo.name.split('@');
+                    if (!this.packages[name]) {
+                        this.packages[name] = {};
+                    }
+                    this.packages[name][version] = packageInfo;
                 }
             }
         } catch (error) {
@@ -55,12 +41,16 @@ class PackageRepository {
 
     async savePackage(packageInfo) {
         try {
+            const [name, version] = packageInfo.name.split('@');
             const filePath = path.join(
                 this.packagesDir,
-                `${packageInfo.name}.json`
+                `${name}@${version}.json`
             );
             await fs.writeFile(filePath, JSON.stringify(packageInfo, null, 2));
-            this.packages[packageInfo.name] = packageInfo;
+            if (!this.packages[name]) {
+                this.packages[name] = {};
+            }
+            this.packages[name][version] = packageInfo;
         } catch (error) {
             console.error('Error saving package:', error);
             throw error;
@@ -68,18 +58,55 @@ class PackageRepository {
     }
 
     getPackage(packageName) {
-        return this.packages[packageName] || null;
+        const [name, version] = packageName.split('@');
+        if (!this.packages[name]) {
+            return null;
+        }
+        if (version) {
+            return this.packages[name][version] || null;
+        }
+        const versions = Object.keys(this.packages[name]);
+        const newestVersion = semver.maxSatisfying(versions, '*');
+        return this.packages[name][newestVersion] || null;
     }
 
     getAllPackages() {
-        return Object.values(this.packages);
+        const allPackages = [];
+        for (const packageName in this.packages) {
+            const versions = Object.keys(this.packages[packageName]);
+            const newestVersion = semver.maxSatisfying(versions, '*');
+            allPackages.push(this.packages[packageName][newestVersion]);
+        }
+        return allPackages;
     }
 
     async deletePackage(packageName) {
         try {
-            const filePath = path.join(this.packagesDir, `${packageName}.json`);
-            await fs.unlink(filePath);
-            delete this.packages[packageName];
+            const [name, version] = packageName.split('@');
+            if (!this.packages[name]) {
+                throw new Error('Package not found');
+            }
+            if (version) {
+                const filePath = path.join(
+                    this.packagesDir,
+                    `${name}@${version}.json`
+                );
+                await fs.unlink(filePath);
+                delete this.packages[name][version];
+                if (Object.keys(this.packages[name]).length === 0) {
+                    delete this.packages[name];
+                }
+            } else {
+                const versions = Object.keys(this.packages[name]);
+                for (const v of versions) {
+                    const filePath = path.join(
+                        this.packagesDir,
+                        `${name}@${v}.json`
+                    );
+                    await fs.unlink(filePath);
+                }
+                delete this.packages[name];
+            }
         } catch (error) {
             console.error('Error deleting package:', error);
             throw error;

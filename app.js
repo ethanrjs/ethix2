@@ -1,4 +1,3 @@
-// app.js
 const express = require('express');
 const path = require('path');
 const fs = require('fs').promises;
@@ -46,8 +45,34 @@ app.get('/api/packages', (req, res) => {
 app.post('/api/packages', async (req, res) => {
     try {
         const packageInfo = req.body;
+
+        if (!packageInfo.version) {
+            return res.status(400).json({ error: 'Version is required' });
+        }
+
+        const versionRegex = /^(\d+)(\.\d+)?(\.\d+)?$/;
+        if (!versionRegex.test(packageInfo.version)) {
+            return res.status(400).json({
+                error: 'Invalid version format. Use (number)[.(number).(number)]'
+            });
+        }
+
+        const existingPackage = packageRepository.getPackage(
+            `${packageInfo.name}@${packageInfo.version}`
+        );
+        if (existingPackage) {
+            return res
+                .status(401)
+                .json({ error: 'Package with this version already exists' });
+        }
+
+        packageInfo.name = `${packageInfo.name}@${packageInfo.version}`;
+
         await packageRepository.savePackage(packageInfo);
-        res.status(201).json({ message: 'Package saved successfully' });
+        res.status(201).json({
+            message: 'Package saved successfully',
+            version: packageInfo.version
+        });
     } catch (error) {
         console.error('Error saving package:', error);
         res.status(500).json({ error: 'Unable to save package' });
@@ -65,12 +90,10 @@ app.delete('/api/packages/:packageName', async (req, res) => {
     }
 });
 
-// Catch-all route to serve the index.html for any unmatched routes
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Initialize the package repository before starting the server
 packageRepository.initialize().then(() => {
     app.listen(port, () => {
         console.log(`Server running at http://localhost:${port}`);
