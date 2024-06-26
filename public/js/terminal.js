@@ -38,50 +38,62 @@ export function addOutputLine(segments, options = {}) {
     const line = document.createElement('div');
     line.className = 'output-line';
 
-    let content = '';
+    segments = Array.isArray(segments) ? segments : [segments];
 
-    if (Array.isArray(segments)) {
-        segments.forEach(segment => {
-            const { text, color, backgroundColor, style } = segment;
-            let styledText = text;
+    segments.forEach(segment => {
+        let span = document.createElement('span');
+
+        if (typeof segment === 'string') {
+            span.textContent = segment;
+        } else if (typeof segment === 'object' && segment !== null) {
+            const { text = '', color, backgroundColor, style } = segment;
+            span.textContent = text;
+
+            let styles = [];
 
             if (color && COLORS[color]) {
-                styledText = `<span style="color: ${COLORS[color]};">${styledText}</span>`;
+                styles.push(`color: ${COLORS[color]}`);
             }
 
             if (backgroundColor && COLORS[backgroundColor]) {
-                styledText = `<span style="background-color: ${COLORS[backgroundColor]};">${styledText}</span>`;
+                styles.push(`background-color: ${COLORS[backgroundColor]}`);
             }
 
             if (style) {
-                const styles = style
+                const additionalStyles = style
                     .split(',')
                     .map(s => STYLES[s.trim()])
                     .filter(Boolean);
-                if (styles.length > 0) {
-                    styledText = `<span style="${styles.join(
-                        ' '
-                    )}">${styledText}</span>`;
-                }
+                styles = styles.concat(additionalStyles);
             }
 
-            content += styledText;
-        });
-    } else {
-        content = segments; // Fallback for single-string input
-    }
+            if (styles.length > 0) {
+                span.style.cssText = styles.join('; ');
+            }
+        } else {
+            return;
+        }
 
-    if (options.isCommand) {
-        content = promptElement.textContent + ' ' + content;
+        line.appendChild(span);
+    });
+
+    if (options.isCommand && promptElement && promptElement.textContent) {
+        const promptSpan = document.createElement('span');
+        promptSpan.textContent = promptElement.textContent + ' ';
+        line.insertBefore(promptSpan, line.firstChild);
     }
 
     if (options.ascii) {
-        content = `<pre>${content}</pre>`;
+        const pre = document.createElement('pre');
+        pre.appendChild(line);
+        output.appendChild(pre);
+    } else {
+        output.appendChild(line);
     }
 
-    line.innerHTML = content;
-    output.appendChild(line);
-    terminal.scrollTop = terminal.scrollHeight;
+    if (terminal) {
+        terminal.scrollTop = terminal.scrollHeight;
+    }
 }
 
 export function registerCommand(name, description, action) {

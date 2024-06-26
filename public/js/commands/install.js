@@ -16,10 +16,10 @@ import { terminalAPI } from '../terminalAPI.js';
 
 registerCommand('install', 'Install a package', async args => {
     if (args.length === 0) {
-        addOutputLine(
-            'Usage: install <package-name> or install <package-path>',
-            { color: 'red' }
-        );
+        addOutputLine({
+            text: 'Usage: install <package-name> or install <package-path>',
+            color: 'red'
+        });
         return;
     }
 
@@ -27,7 +27,8 @@ registerCommand('install', 'Install a package', async args => {
     const packagesDir = fileSystem['/'].contents['packages'].contents;
 
     if (packagesDir[packageNameOrPath]) {
-        addOutputLine(`Package ${packageNameOrPath} is already installed.`, {
+        addOutputLine({
+            text: `Package ${packageNameOrPath} is already installed.`,
             color: 'yellow'
         });
         return;
@@ -41,17 +42,18 @@ registerCommand('install', 'Install a package', async args => {
     const localPackageContents = getDirectoryContents(localPackagePath);
 
     if (localPackageContents) {
-        addOutputLine(`Installing local package from ${localPackagePath}...`, {
+        addOutputLine({
+            text: `Installing local package from ${localPackagePath}...`,
             color: 'cyan'
         });
 
         const packageJsonContent =
             localPackageContents['package.json']?.content;
         if (!packageJsonContent) {
-            addOutputLine(
-                'Error: package.json not found in the package directory.',
-                { color: 'red' }
-            );
+            addOutputLine({
+                text: 'Error: package.json not found in the package directory.',
+                color: 'red'
+            });
             return;
         }
 
@@ -66,13 +68,15 @@ registerCommand('install', 'Install a package', async args => {
             );
         });
 
-        addOutputLine(`Local package ${packageName} installed successfully.`, {
+        addOutputLine({
+            text: `Local package ${packageName} installed successfully.`,
             color: 'green'
         });
 
         await runPackageInitialization(packageName);
     } else {
-        addOutputLine(`Fetching package ${packageNameOrPath}...`, {
+        addOutputLine({
+            text: `Fetching package ${packageNameOrPath}...`,
             color: 'cyan'
         });
         try {
@@ -114,14 +118,15 @@ registerCommand('install', 'Install a package', async args => {
                 packageData.code
             );
 
-            addOutputLine(
-                `Package ${packageNameOrPath} installed successfully.`,
-                { color: 'green' }
-            );
+            addOutputLine({
+                text: `Package ${packageNameOrPath} installed successfully.`,
+                color: 'green'
+            });
 
             await runPackageInitialization(packageNameOrPath);
         } catch (error) {
-            addOutputLine(`Error installing package: ${error.message}`, {
+            addOutputLine({
+                text: `Error installing package: ${error.message}`,
                 color: 'red'
             });
         }
@@ -157,7 +162,8 @@ async function runPackageInitialization(packageName) {
                 `
                 );
 
-                addOutputLine(`Running initialization for ${packageName}...`, {
+                addOutputLine({
+                    text: `Running initialization for ${packageName}...`,
                     color: 'cyan'
                 });
                 const packageExports = await executePkg(terminalAPI)();
@@ -168,16 +174,16 @@ async function runPackageInitialization(packageName) {
                         `Run ${packageName} package`,
                         packageExports.run
                     );
-                    addOutputLine(
-                        `Registered '${packageName}' as a new command.`,
-                        { color: 'green' }
-                    );
+                    addOutputLine({
+                        text: `Registered '${packageName}' as a new command.`,
+                        color: 'green'
+                    });
                 }
             } catch (error) {
-                addOutputLine(
-                    `Error initializing package ${packageName}: ${error.message}`,
-                    { color: 'red' }
-                );
+                addOutputLine({
+                    text: `Error initializing package ${packageName}: ${error.message}`,
+                    color: 'red'
+                });
             }
         }
     }

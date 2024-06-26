@@ -136,14 +136,17 @@ function fzf(args) {
     const searchTerm = searchContent ? args.slice(1).join(' ') : args.join(' ');
 
     if (!searchTerm) {
-        addOutputLine('Usage: fzf [-c] <search term>', { color: 'red' });
+        addOutputLine({ text: 'Usage: fzf [-c] <search term>', color: 'red' });
         return;
     }
 
     const results = searchFiles(searchTerm, searchContent);
     renderResults(results, searchTerm);
 
-    addOutputLine(`\nTotal results: ${results.length}`, { color: 'cyan' });
+    addOutputLine({
+        text: `\nTotal results: ${results.length}`,
+        color: 'cyan'
+    });
 }
 
 registerCommand('fzf', 'Fuzzy find files and content', fzf);

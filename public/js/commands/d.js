@@ -35,12 +35,12 @@ registerCommand('d', 'Delete a file or directory', args => {
     if (contents === null) {
         // It's a file or doesn't exist
         if (deleteItem(path)) {
-            addOutputLine(`Deleted file: ${path}`, { color: 'green' });
+            addOutputLine({ text: `Deleted file: ${path}`, color: 'green' });
         } else {
-            addOutputLine(
-                `Error: Unable to delete ${path}. File may not exist.`,
-                { color: 'red' }
-            );
+            addOutputLine({
+                text: `Error: Unable to delete ${path}. File may not exist.`,
+                color: 'red'
+            });
         }
     } else {
         // It's a directory
@@ -49,15 +49,19 @@ registerCommand('d', 'Delete a file or directory', args => {
             !args.includes('-r') &&
             !args.includes('--recursive')
         ) {
-            addOutputLine(
-                `Error: ${path} is a directory. Use -r or --recursive to delete directories.`,
-                { color: 'red' }
-            );
+            addOutputLine({
+                text: `Error: ${path} is a directory. Use -r or --recursive to delete directories.`,
+                color: 'red'
+            });
         } else {
             if (deleteItem(path)) {
-                addOutputLine(`Deleted directory: ${path}`, { color: 'green' });
+                addOutputLine({
+                    text: `Deleted directory: ${path}`,
+                    color: 'green'
+                });
             } else {
-                addOutputLine(`Error: Unable to delete ${path}.`, {
+                addOutputLine({
+                    text: `Error: Unable to delete ${path}.`,
                     color: 'red'
                 });
             }

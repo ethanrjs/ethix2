@@ -11,7 +11,7 @@ import { registerCommandDescription } from './help.js';
 
 registerCommand('edit', 'Edit a file', args => {
     if (args.length < 1) {
-        addOutputLine('Usage: edit <filename>', { color: 'red' });
+        addOutputLine({ text: 'Usage: edit <filename>', color: 'red' });
         return;
     }
 
@@ -21,14 +21,18 @@ registerCommand('edit', 'Edit a file', args => {
 
     const fileContents = getFileContents(filePath);
     if (fileContents === null) {
-        addOutputLine(`File "${fileName}" does not exist.`, { color: 'red' });
+        addOutputLine({
+            text: `File "${fileName}" does not exist.`,
+            color: 'red'
+        });
         return;
     }
 
     enterEditMode(fileName, fileContents, newContents => {
         saveFile(filePath, newContents);
         exitEditMode();
-        addOutputLine(`File "${fileName}" saved successfully.`, {
+        addOutputLine({
+            text: `File "${fileName}" saved successfully.`,
             color: 'green'
         });
     });

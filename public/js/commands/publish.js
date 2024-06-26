@@ -48,7 +48,10 @@ registerCommand(
     'Publish a package to the repository',
     async args => {
         if (args.length < 1) {
-            addOutputLine('Usage: publish <package-name>', { color: 'red' });
+            addOutputLine({
+                text: 'Usage: publish <package-name>',
+                color: 'red'
+            });
             return;
         }
 
@@ -59,24 +62,31 @@ registerCommand(
         const packageContents = getDirectoryContents(packagePath);
 
         if (!packageContents) {
-            addOutputLine(`Package directory "${packageName}" not found.`, {
+            addOutputLine({
+                text: `Package directory "${packageName}" not found.`,
                 color: 'red'
             });
             return;
         }
 
-        addOutputLine(`Publishing package ${packageName}...`, {
+        addOutputLine({
+            text: `Publishing package ${packageName}...`,
             color: 'cyan'
         });
 
         try {
             const result = await publishPackage(packagePath);
-            addOutputLine(`Package ${packageName} published successfully.`, {
+            addOutputLine({
+                text: `Package ${packageName} published successfully.`,
                 color: 'green'
             });
-            addOutputLine(`Version: ${result.version}`, { color: 'yellow' });
+            addOutputLine({
+                text: `Version: ${result.version}`,
+                color: 'yellow'
+            });
         } catch (error) {
-            addOutputLine(`Error publishing package: ${error.message}`, {
+            addOutputLine({
+                text: `Error publishing package: ${error.message}`,
                 color: 'red'
             });
         }

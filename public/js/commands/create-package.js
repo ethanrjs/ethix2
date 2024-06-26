@@ -13,7 +13,10 @@ import { registerCommandDescription } from './help.js';
 
 registerCommand('create-package', 'Create a new package', args => {
     if (args.length < 1) {
-        addOutputLine('Usage: create-package <package-name>', { color: 'red' });
+        addOutputLine({
+            text: 'Usage: create-package <package-name>',
+            color: 'red'
+        });
         return;
     }
 
@@ -22,7 +25,8 @@ registerCommand('create-package', 'Create a new package', args => {
     const packageDir = `${currentDir}/${packageName}`.replace(/\/+/g, '/');
 
     if (getDirectoryContents(packageDir)) {
-        addOutputLine(`Package "${packageName}" already exists.`, {
+        addOutputLine({
+            text: `Package "${packageName}" already exists.`,
             color: 'red'
         });
         return;
@@ -48,11 +52,12 @@ registerCommand('create-package', 'Create a new package', args => {
         `console.log('Hello from ${packageName}!');\n\nmodule.exports = {\n  greet: () => console.log('Greetings from ${packageName}!')\n};`
     );
 
-    addOutputLine(`Package "${packageName}" created successfully.`, {
+    addOutputLine({
+        text: `Package "${packageName}" created successfully.`,
         color: 'green'
     });
-    addOutputLine('To install this package, use:', { color: 'cyan' });
-    addOutputLine(`install ${packageDir}`, { color: 'yellow' });
+    addOutputLine({ text: 'To install this package, use:', color: 'cyan' });
+    addOutputLine({ text: `install ${packageDir}`, color: 'yellow' });
 });
 
 registerCommandDescription('create-package', 'Create a new package');

@@ -9,7 +9,7 @@ import { registerCommandDescription } from './help.js';
 
 registerCommand('create', 'Create a new file', args => {
     if (args.length < 1) {
-        addOutputLine('Usage: create <filename>', { color: 'red' });
+        addOutputLine({ text: 'Usage: create <filename>', color: 'red' });
         return;
     }
 
@@ -18,16 +18,20 @@ registerCommand('create', 'Create a new file', args => {
     const filePath = `${currentDir}/${fileName}`.replace(/\/+/g, '/');
 
     if (getDirectoryContents(filePath)) {
-        addOutputLine(`File "${fileName}" already exists.`, { color: 'red' });
+        addOutputLine({
+            text: `File "${fileName}" already exists.`,
+            color: 'red'
+        });
         return;
     }
 
     createFile(filePath, '');
-    addOutputLine(`File "${fileName}" created successfully.`, {
+    addOutputLine({
+        text: `File "${fileName}" created successfully.`,
         color: 'green'
     });
-    addOutputLine('To edit this file, use:', { color: 'cyan' });
-    addOutputLine(`edit ${fileName}`, { color: 'yellow' });
+    addOutputLine({ text: 'To edit this file, use:', color: 'cyan' });
+    addOutputLine({ text: `edit ${fileName}`, color: 'yellow' });
 });
 
 registerCommandDescription('create', 'Create a new file');
