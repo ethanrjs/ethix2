@@ -23,9 +23,9 @@ function resolvePath(path) {
     return '/' + resolvedParts.join('/');
 }
 
-registerCommand('d', 'Delete a file or directory', args => {
+registerCommand('rm', 'Delete a file or directory', args => {
     if (args.length === 0) {
-        addOutputLine('Usage: d <file_or_directory>', { color: 'red' });
+        addOutputLine('Usage: rm <file_or_directory>', { color: 'red' });
         return;
     }
 
