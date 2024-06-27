@@ -1,3 +1,4 @@
 node_modules
 packages/*
-*.log
+error.log
+combined.log
