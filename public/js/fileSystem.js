@@ -1,204 +1,148 @@
 import { getCurrentDirectory } from './terminal.js';
 
-let fileSystem = JSON.parse(localStorage.getItem('fileSystem')) || {
-    '/': {
-        type: 'directory',
-        contents: {
-            home: { type: 'directory', contents: {} },
-            packages: { type: 'directory', contents: {} }
-        }
-    }
-};
-
-function saveFileSystem() {
-    localStorage.setItem('fileSystem', JSON.stringify(fileSystem));
-}
-
-function getDirectoryContents(path) {
-    const parts = path.split('/').filter(Boolean);
-    let current = fileSystem['/'];
-    for (const part of parts) {
-        if (current.type !== 'directory' || !current.contents[part]) {
-            return null;
-        }
-        current = current.contents[part];
-    }
-    return current.type === 'directory' ? current.contents : null;
-}
-
-function createDirectory(path) {
-    const parts = path.split('/').filter(Boolean);
-    let current = fileSystem['/'];
-    for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-        if (i === parts.length - 1) {
-            if (current.contents[part]) {
-                return false;
+class FileSystem {
+    constructor() {
+        this.fs = JSON.parse(localStorage.getItem('fileSystem')) || {
+            '/': {
+                type: 'directory',
+                contents: {
+                    home: { type: 'directory', contents: {} },
+                    packages: { type: 'directory', contents: {} }
+                }
             }
-            current.contents[part] = { type: 'directory', contents: {} };
-            return true;
-        }
-        if (
-            !current.contents[part] ||
-            current.contents[part].type !== 'directory'
-        ) {
-            return false;
-        }
-        current = current.contents[part];
+        };
     }
-    return false;
-}
 
-function createFile(path, content) {
-    const parts = path.split('/').filter(Boolean);
-    const fileName = parts.pop();
-    let current = fileSystem['/'];
-    for (const part of parts) {
-        if (
-            !current.contents[part] ||
-            current.contents[part].type !== 'directory'
-        ) {
-            return false;
-        }
-        current = current.contents[part];
+    save() {
+        localStorage.setItem('fileSystem', JSON.stringify(this.fs));
     }
-    current.contents[fileName] = {
-        type: 'file',
-        content,
-        size: new TextEncoder().encode(content).length
-    };
-    saveFileSystem();
-    return true;
-}
 
-export function getFileContents(path) {
-    const parts = path.split('/').filter(Boolean);
-    const fileName = parts.pop();
-    let current = fileSystem['/'];
-    for (const part of parts) {
-        if (
-            !current.contents[part] ||
-            current.contents[part].type !== 'directory'
-        ) {
-            return null;
-        }
-        current = current.contents[part];
-    }
-    if (
-        current.contents[fileName] &&
-        current.contents[fileName].type === 'file'
-    ) {
-        return current.contents[fileName].content;
-    }
-    return null;
-}
+    resolvePath(path) {
+        const currentDir = getCurrentDirectory();
+        const segments = (path.startsWith('/') ? path : `${currentDir}/${path}`)
+            .split('/')
+            .filter(Boolean);
 
-export function saveFile(path, content) {
-    const parts = path.split('/').filter(Boolean);
-    const fileName = parts.pop();
-    let current = fileSystem['/'];
-    for (const part of parts) {
-        if (
-            !current.contents[part] ||
-            current.contents[part].type !== 'directory'
-        ) {
-            return false;
-        }
-        current = current.contents[part];
-    }
-    if (
-        current.contents[fileName] &&
-        current.contents[fileName].type === 'file'
-    ) {
-        current.contents[fileName].content = content;
-        current.contents[fileName].size = new TextEncoder().encode(
-            content
-        ).length;
-        saveFileSystem();
-        return true;
-    }
-    return false;
-}
-
-function deleteItem(path) {
-    const parts = path.split('/').filter(Boolean);
-    const itemName = parts.pop();
-    let current = fileSystem['/'];
-    for (const part of parts) {
-        if (
-            !current.contents[part] ||
-            current.contents[part].type !== 'directory'
-        ) {
-            return false;
-        }
-        current = current.contents[part];
-    }
-    if (current.contents[itemName]) {
-        delete current.contents[itemName];
-        saveFileSystem();
-        return true;
-    }
-    return false;
-}
-
-function getFileSize(path) {
-    const parts = path.split('/').filter(Boolean);
-    const fileName = parts.pop();
-    let current = fileSystem['/'];
-    for (const part of parts) {
-        if (
-            !current.contents[part] ||
-            current.contents[part].type !== 'directory'
-        ) {
-            return null;
-        }
-        current = current.contents[part];
-    }
-    if (
-        current.contents[fileName] &&
-        current.contents[fileName].type === 'file'
-    ) {
-        return current.contents[fileName].size;
-    }
-    return null;
-}
-
-function resolvePath(path) {
-    const currentDir = getCurrentDirectory();
-
-    const segments = (path.startsWith('/') ? path : `${currentDir}/${path}`)
-        .split('/')
-        .filter(segment => segment !== '');
-
-    const resolvedSegments = [];
-
-    for (const segment of segments) {
-        if (segment === '.') {
-            continue;
-        } else if (segment === '..') {
-            if (resolvedSegments.length > 0) {
-                resolvedSegments.pop();
+        const resolvedSegments = [];
+        for (const segment of segments) {
+            if (segment === '.') continue;
+            if (segment === '..') {
+                if (resolvedSegments.length) resolvedSegments.pop();
+                continue;
             }
-        } else {
             resolvedSegments.push(segment);
         }
+
+        return '/' + resolvedSegments.join('/') || '/';
     }
 
-    let resolvedPath = '/' + resolvedSegments.join('/');
-    if (resolvedPath === '') {
-        resolvedPath = '/';
+    traversePath(path, createMode = false) {
+        const parts = this.resolvePath(path).split('/').filter(Boolean);
+        let current = this.fs['/'];
+
+        for (const part of parts) {
+            if (current.type !== 'directory') return null;
+            if (!current.contents[part]) {
+                if (createMode) {
+                    current.contents[part] = {
+                        type: 'directory',
+                        contents: {}
+                    };
+                } else {
+                    return null;
+                }
+            }
+            current = current.contents[part];
+        }
+
+        return current;
     }
 
-    return resolvedPath;
+    getDirectoryContents(path) {
+        const dir = this.traversePath(path);
+        return dir && dir.type === 'directory' ? dir.contents : null;
+    }
+
+    createDirectory(path) {
+        const parts = this.resolvePath(path).split('/').filter(Boolean);
+        const dirName = parts.pop();
+        const parent = this.traversePath(parts.join('/'), true);
+
+        if (!parent || parent.type !== 'directory') return false;
+        if (parent.contents[dirName]) return false;
+
+        parent.contents[dirName] = { type: 'directory', contents: {} };
+        this.save();
+        return true;
+    }
+
+    createFile(path, content) {
+        const parts = this.resolvePath(path).split('/').filter(Boolean);
+        const fileName = parts.pop();
+        const parent = this.traversePath(parts.join('/'), true);
+
+        if (!parent || parent.type !== 'directory') return false;
+
+        parent.contents[fileName] = {
+            type: 'file',
+            content,
+            size: new TextEncoder().encode(content).length
+        };
+        this.save();
+        return true;
+    }
+
+    getFileContents(path) {
+        const file = this.traversePath(path);
+        return file && file.type === 'file' ? file.content : null;
+    }
+
+    saveFile(path, content) {
+        const file = this.traversePath(path);
+        if (!file || file.type !== 'file') return false;
+
+        file.content = content;
+        file.size = new TextEncoder().encode(content).length;
+        this.save();
+        return true;
+    }
+
+    deleteItem(path) {
+        const parts = this.resolvePath(path).split('/').filter(Boolean);
+        const itemName = parts.pop();
+        const parent = this.traversePath(parts.join('/'));
+
+        if (
+            !parent ||
+            parent.type !== 'directory' ||
+            !parent.contents[itemName]
+        )
+            return false;
+
+        delete parent.contents[itemName];
+        this.save();
+        return true;
+    }
+
+    getFileSize(path) {
+        const file = this.traversePath(path);
+        return file && file.type === 'file' ? file.size : null;
+    }
 }
 
-export {
-    fileSystem,
-    saveFileSystem,
-    getDirectoryContents,
-    createDirectory,
-    createFile,
-    deleteItem,
-    getFileSize,
-    resolvePath
-};
+const fileSystem = new FileSystem();
+
+// Export bound methods
+export const saveFileSystem = fileSystem.save.bind(fileSystem);
+export const getDirectoryContents =
+    fileSystem.getDirectoryContents.bind(fileSystem);
+export const createDirectory = fileSystem.createDirectory.bind(fileSystem);
+export const createFile = fileSystem.createFile.bind(fileSystem);
+export const getFileContents = fileSystem.getFileContents.bind(fileSystem);
+export const saveFile = fileSystem.saveFile.bind(fileSystem);
+export const deleteItem = fileSystem.deleteItem.bind(fileSystem);
+export const getFileSize = fileSystem.getFileSize.bind(fileSystem);
+export const resolvePath = fileSystem.resolvePath.bind(fileSystem);
+
+// Export the fileSystem instance
+export { fileSystem };
