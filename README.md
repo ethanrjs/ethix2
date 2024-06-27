@@ -217,6 +217,133 @@ The file system provides several key functions that are used by various commands
 -   There's no concept of file permissions or multiple users.
 -   The total storage is limited by the browser's localStorage limits.
 
+# ETX Script Language and Parser Documentation
+
+## Overview
+
+ETX Script is a simple scripting language designed for basic automation tasks. It supports variable assignment, arithmetic operations, conditional statements, loops, and execution of shell commands.
+
+## Language Features
+
+### Comments
+
+Lines starting with `#` are treated as comments and ignored during execution.
+
+```
+# This is a comment
+```
+
+### Variable Assignment
+
+Variables are assigned using the `set` keyword.
+
+```
+set variableName value
+```
+
+Example:
+
+```
+set x 10
+set y x + 5
+```
+
+### Arithmetic Operations
+
+Basic arithmetic operations are supported in variable assignments and conditions.
+
+Supported operations: `+`, `-`, `*`, `/`, `%` (modulo)
+
+### Conditional Statements
+
+If-else statements are supported for conditional execution.
+
+```
+if condition
+    # code block
+else
+    # code block
+endif
+```
+
+Example:
+
+```
+if x > y
+    echo x is greater than y
+else
+    echo y is greater than or equal to x
+endif
+```
+
+### Loops
+
+For loops are supported for iterative execution.
+
+```
+for variable start end
+    # code block
+endfor
+```
+
+Example:
+
+```
+for i 1 5
+    echo Loop iteration: $i
+endfor
+```
+
+### Echo Command
+
+The `echo` command is used to print text to the console. Variables can be referenced using the `$` symbol.
+
+```
+echo This is a message
+echo The value of x is $x
+```
+
+### Shell Commands
+
+Any line that is not recognized as an ETX Script command is treated as a shell command and executed.
+
+Example:
+
+```
+pwd
+ls -l
+```
+
+## Parser Implementation
+
+The `ETXScriptParser` class implements the following methods:
+
+-   `executeScript(scriptContent)`: Executes the entire script.
+-   `executeLine(line, index, lines)`: Executes a single line of the script.
+-   `executeIfBlock(startIndex, lines)`: Handles the execution of if-else blocks.
+-   `executeForLoop(startIndex, lines)`: Handles the execution of for loops.
+-   `executeSet(line)`: Handles variable assignment.
+-   `executeCommand(command)`: Executes shell commands.
+-   `evaluateExpression(expression)`: Evaluates arithmetic and boolean expressions.
+-   `replaceVariables(str)`: Replaces variable references with their values.
+
+## Limitations and Future Improvements
+
+-   The current implementation uses JavaScript's `eval()` for expression evaluation, which can be a security risk if not properly sanitized.
+-   Error handling could be improved to provide more detailed error messages.
+-   The parser doesn't support user-defined functions or more complex data structures.
+-   Nested loops and conditionals are supported, but care should be taken to ensure proper nesting.
+
+## Usage
+
+To use the ETX Script Parser:
+
+1. Create a script file with a `.etx` extension (e.g., `script.etx`).
+2. Write your script using the language features described above.
+3. Execute the script using the command: `./script.etx` or `etx script.etx` (depending on your setup).
+
+Remember to handle the script execution carefully, as it can execute arbitrary shell commands.
+
 ## API Endpoints
 
 The backend provides the following API endpoints:

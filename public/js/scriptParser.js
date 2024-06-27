@@ -66,7 +66,10 @@ class ETXScriptParser {
             endIndex++;
         }
 
-        for (let i = parseInt(start); i <= parseInt(end); i++) {
+        const startValue = this.evaluateExpression(start);
+        const endValue = this.evaluateExpression(end);
+
+        for (let i = startValue; i <= endValue; i++) {
             this.variables[variable] = i;
             for (let j = startIndex + 1; j < endIndex; j++) {
                 j = await this.executeLine(lines[j].trim(), j, lines);
@@ -87,9 +90,8 @@ class ETXScriptParser {
     }
 
     evaluateExpression(expression) {
-        expression = this.replaceVariables(expression);
         try {
-            return eval(expression);
+            return this.customEval(expression);
         } catch (error) {
             addOutputLine({
                 text: `Error evaluating expression: ${expression}`,
@@ -97,6 +99,110 @@ class ETXScriptParser {
             });
             return null;
         }
+    }
+
+    customEval(expression) {
+        const tokens =
+            expression.match(
+                /(\d+|\w+|\+|\-|\*|\/|\(|\)|<=|>=|==|!=|<|>|&&|\|\|)/g
+            ) || [];
+        const output = [];
+        const operators = [];
+        const precedence = {
+            '||': 1,
+            '&&': 2,
+            '==': 3,
+            '!=': 3,
+            '<': 4,
+            '>': 4,
+            '<=': 4,
+            '>=': 4,
+            '+': 5,
+            '-': 5,
+            '*': 6,
+            '/': 6
+        };
+
+        for (const token of tokens) {
+            if (!isNaN(token)) {
+                output.push(parseFloat(token));
+            } else if (this.variables.hasOwnProperty(token)) {
+                output.push(this.variables[token]);
+            } else if (token === '(') {
+                operators.push(token);
+            } else if (token === ')') {
+                while (
+                    operators.length &&
+                    operators[operators.length - 1] !== '('
+                ) {
+                    output.push(operators.pop());
+                }
+                operators.pop(); // Remove the '('
+            } else if (token in precedence) {
+                while (
+                    operators.length &&
+                    precedence[operators[operators.length - 1]] >=
+                        precedence[token]
+                ) {
+                    output.push(operators.pop());
+                }
+                operators.push(token);
+            }
+        }
+
+        while (operators.length) {
+            output.push(operators.pop());
+        }
+
+        const stack = [];
+        for (const token of output) {
+            if (typeof token === 'number') {
+                stack.push(token);
+            } else {
+                const b = stack.pop();
+                const a = stack.pop();
+                switch (token) {
+                    case '+':
+                        stack.push(a + b);
+                        break;
+                    case '-':
+                        stack.push(a - b);
+                        break;
+                    case '*':
+                        stack.push(a * b);
+                        break;
+                    case '/':
+                        stack.push(a / b);
+                        break;
+                    case '<':
+                        stack.push(a < b ? 1 : 0);
+                        break;
+                    case '>':
+                        stack.push(a > b ? 1 : 0);
+                        break;
+                    case '<=':
+                        stack.push(a <= b ? 1 : 0);
+                        break;
+                    case '>=':
+                        stack.push(a >= b ? 1 : 0);
+                        break;
+                    case '==':
+                        stack.push(a === b ? 1 : 0);
+                        break;
+                    case '!=':
+                        stack.push(a !== b ? 1 : 0);
+                        break;
+                    case '&&':
+                        stack.push(a && b ? 1 : 0);
+                        break;
+                    case '||':
+                        stack.push(a || b ? 1 : 0);
+                        break;
+                }
+            }
+        }
+
+        return stack[0];
     }
 
     replaceVariables(str) {
