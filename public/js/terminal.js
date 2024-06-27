@@ -1,5 +1,6 @@
 import { fileSystem, saveFileSystem } from './fileSystem.js';
 import { terminalAPI } from './terminalAPI.js';
+import { getFileContents } from './fileSystem.js';
 
 const terminal = document.getElementById('terminal');
 const output = document.getElementById('output');
@@ -79,6 +80,7 @@ export function addOutputLine(segments, options = {}) {
     if (options.isCommand && promptElement && promptElement.textContent) {
         const promptSpan = document.createElement('span');
         promptSpan.textContent = promptElement.textContent + ' ';
+        promptSpan.style.color = COLORS.green;
         line.insertBefore(promptSpan, line.firstChild);
     }
 
@@ -103,13 +105,65 @@ function updatePrompt() {
     promptElement.textContent = `${currentDirectory} $`;
 }
 
-function processCommand(command) {
-    addOutputLine(command, { isCommand: true, color: 'cyan' });
-    const [cmd, ...args] = command.split(' ');
-    if (commands[cmd]) {
-        commands[cmd].action(args);
+async function executeScript(scriptPath) {
+    const fullPath = resolvePath(scriptPath);
+    const scriptContent = getFileContents(fullPath);
+
+    if (scriptContent === null) {
+        addOutputLine({
+            text: `Script not found: ${scriptPath}`,
+            color: 'red'
+        });
+        return;
+    }
+
+    const lines = scriptContent.split('\n');
+    for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (trimmedLine && !trimmedLine.startsWith('#')) {
+            await processCommand(trimmedLine, true);
+        }
+    }
+}
+
+function resolvePath(path) {
+    const currentDir = getCurrentDirectory();
+
+    const absolutePath = path.startsWith('/') ? path : `${currentDir}/${path}`;
+    const segments = absolutePath.split('/').filter(segment => segment !== '');
+
+    const resolvedSegments = [];
+
+    for (const segment of segments) {
+        if (segment === '.') {
+            continue;
+        } else if (segment === '..') {
+            if (resolvedSegments.length > 0) {
+                resolvedSegments.pop();
+            }
+        } else {
+            resolvedSegments.push(segment);
+        }
+    }
+
+    let resolvedPath = '/' + resolvedSegments.join('/');
+    if (resolvedPath === '') {
+        resolvedPath = '/';
+    }
+
+    return resolvedPath;
+}
+
+export async function processCommand(input, hidden = false) {
+    if (!hidden) addOutputLine({ text: input }, { isCommand: true });
+    const [cmd, ...args] = input.split(' ');
+
+    if (input.startsWith('./') || input.startsWith('/')) {
+        await executeScript(input);
+    } else if (commands[cmd]) {
+        await commands[cmd].action(args);
     } else {
-        addOutputLine(`Command not found: ${cmd}`, { color: 'red' });
+        addOutputLine({ text: `Command not found: ${cmd}`, color: 'red' });
     }
     saveFileSystem();
 }
