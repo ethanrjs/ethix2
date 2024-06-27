@@ -9,7 +9,7 @@ import { registerCommandDescription } from './help.js';
 
 registerCommand('create', 'Create a new file', args => {
     if (args.length < 1) {
-        addOutputLine({ text: 'Usage: create <filename>', color: 'red' });
+        addOutputLine({ text: 'Usage: create (filename)', color: 'red' });
         return;
     }
 

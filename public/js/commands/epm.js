@@ -407,7 +407,7 @@ async function runPackageInitialization(packageName) {
 registerCommand('epm', 'ETHIX Package Manager', async args => {
     if (args.length === 0) {
         addOutputLine({
-            text: 'Usage: epm <command> [options]',
+            text: 'Usage: epm (command) [options]',
             color: 'yellow'
         });
         addOutputLine({ text: 'Commands:', color: 'cyan' });

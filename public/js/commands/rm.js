@@ -51,7 +51,7 @@ registerCommand('rm', 'Remove files or directories', args => {
 
     if (paths.length === 0) {
         addOutputLine({
-            text: 'Usage: rm [-r] <file_or_directory...>',
+            text: 'Usage: rm [-r] (file_or_directory...)',
             color: 'red'
         });
         return;

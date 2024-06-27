@@ -44,10 +44,10 @@ export function addOutputLine(segments, options = {}) {
         let span = document.createElement('span');
 
         if (typeof segment === 'string') {
-            span.textContent = segment;
+            span.innerHTML = segment;
         } else if (typeof segment === 'object' && segment !== null) {
             const { text = '', color, backgroundColor, style } = segment;
-            span.textContent = text;
+            span.innerHTML = text;
 
             let styles = [];
 
