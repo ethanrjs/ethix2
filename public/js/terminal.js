@@ -1,4 +1,3 @@
-// terminal.js
 import { fileSystem, saveFileSystem } from './fileSystem.js';
 import { terminalAPI } from './terminalAPI.js';
 
@@ -130,18 +129,14 @@ function getTimestamp() {
 }
 
 inputElement.addEventListener('input', e => {
-    // Get the current cursor position
     const selection = window.getSelection();
     const cursorPosition = selection.focusOffset;
 
-    // Remove any newline characters
     const newContent = inputElement.textContent.replace(/\n/g, '');
 
-    // Only update if content has changed
     if (newContent !== inputElement.textContent) {
         inputElement.textContent = newContent;
 
-        // Restore the cursor position
         const range = document.createRange();
         const textNode = inputElement.firstChild || inputElement;
         const newPosition = Math.min(cursorPosition, newContent.length);
@@ -162,7 +157,6 @@ inputElement.addEventListener('keydown', e => {
             historyIndex = -1;
             inputElement.textContent = '';
 
-            // Check if there are any pending input callbacks
             if (terminalAPI.inputCallbacks.length > 0) {
                 const callback = terminalAPI.inputCallbacks.shift();
                 callback(command);
@@ -218,43 +212,58 @@ async function loadCommandModules() {
 
     try {
         const response = await fetch('/api/command-modules');
-        const modules = await response.json();
+        let modules = await response.json();
 
-        // Ensure help.js is loaded first
         const helpIndex = modules.indexOf('help.js');
         if (helpIndex > -1) {
-            modules.splice(helpIndex, 1);
-            modules.unshift('help.js');
+            modules = ['help.js', ...modules.filter(m => m !== 'help.js')];
         }
 
-        for (const module of modules) {
+        const loadPromises = modules.map(async module => {
             const startTime = performance.now();
             try {
                 await import(`/js/commands/${module}`);
-                const endTime = performance.now();
-                const loadTime = (endTime - startTime).toFixed(2);
+                const loadTime = (performance.now() - startTime).toFixed(2);
+                return { module, success: true, loadTime };
+            } catch (error) {
+                return { module, success: false, error: error.message };
+            }
+        });
+
+        const results = await Promise.all(loadPromises);
+
+        results.forEach(({ module, success, loadTime, error }) => {
+            if (success) {
                 addOutputLine([
                     { text: `  ✓ ${module}`, color: 'green' },
                     { text: ` (${loadTime}ms)`, color: 'gray' },
                     { text: ` [${getTimestamp()}]`, color: 'gray' }
                 ]);
-            } catch (moduleError) {
+            } else {
                 addOutputLine([
                     { text: `  ✗ ${module}`, color: 'red' },
                     { text: ` [${getTimestamp()}]`, color: 'gray' }
                 ]);
-                addOutputLine(`    Error: ${moduleError.message}`, {
+                addOutputLine(`    Error: ${error}`, {
                     color: 'red',
                     style: 'italic'
                 });
             }
-        }
+        });
+
+        const successCount = results.filter(r => r.success).length;
+        const failCount = results.length - successCount;
 
         addOutputLine([
             {
-                text: '\nCommand modules loaded successfully. ',
+                text: '\nCommand modules loaded: ',
                 color: 'green',
                 style: 'bold'
+            },
+            { text: `${successCount} succeeded, `, color: 'green' },
+            {
+                text: `${failCount} failed. `,
+                color: failCount > 0 ? 'red' : 'green'
             },
             { text: `[${getTimestamp()}]`, color: 'gray' }
         ]);
@@ -270,10 +279,9 @@ async function loadCommandModules() {
         addOutputLine(`  ${error.message}`, { color: 'red' });
     }
 
-    addOutputLine(''); // Add an empty line for better readability
+    addOutputLine('');
 }
 
-// Initialize terminal
 export async function initializeTerminal() {
     await loadCommandModules();
     addOutputLine('Type "help" for a list of available commands.');
@@ -321,8 +329,8 @@ export function enterEditMode(fileName, initialContent, saveCallback) {
     editorTextarea.style.outline = 'none';
     editorTextarea.style.fontFamily = 'IBM Plex Mono, monospace';
     editorTextarea.spellcheck = false;
-    editorTextarea.setAttribute('autocorrect', 'off'); // Additional attribute to disable autocorrect
-    editorTextarea.setAttribute('autocapitalize', 'off'); // Additional attribute to disable autocapitalize
+    editorTextarea.setAttribute('autocorrect', 'off');
+    editorTextarea.setAttribute('autocapitalize', 'off');
 
     editorContainer.appendChild(editorHeader);
     editorContainer.appendChild(editorTextarea);
@@ -349,5 +357,4 @@ export function exitEditMode() {
     inputElement.focus();
 }
 
-// Expose necessary functions and variables
 export { fileSystem, updatePrompt, inputElement };
