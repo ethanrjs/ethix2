@@ -158,7 +158,11 @@ export async function processCommand(input, hidden = false) {
     if (!hidden) addOutputLine({ text: input }, { isCommand: true });
     const [cmd, ...args] = input.split(' ');
 
-    if (input.startsWith('./') || input.startsWith('/')) {
+    if (
+        input.startsWith('./') ||
+        input.startsWith('/') ||
+        input.startsWith('../')
+    ) {
         await executeScript(input);
     } else if (commands[cmd]) {
         await commands[cmd].action(args);
