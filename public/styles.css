@@ -1,0 +1,62 @@
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+#terminal {
+    height: 100%;
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#input-line {
+    display: flex;
+    align-items: center;
+}
+
+#prompt {
+    color: #00ff00;
+    margin-right: 10px;
+    white-space: nowrap;
+}
+
+#input {
+    flex-grow: 1;
+    background: none;
+    border: none;
+    color: #f0f0f0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    outline: none;
+    min-width: 1px;
+}
+
+.output-line {
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+#cursor {
+    display: none;
+}
+
+@media only screen and (max-width: 600px) {
+    #input {
+        font-size: 14px;
+    }
+
+    #prompt {
+        font-size: 14px;
+    }
+
+    .output-line {
+        font-size: 14px;
+    }
+}
