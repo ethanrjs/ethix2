@@ -267,9 +267,8 @@ function autocomplete() {
 async function loadCommandModules() {
     addOutputLine([
         {
-            text: '\nLoading command modules... ',
-            color: 'yellow',
-            style: 'bold'
+            text: '\nloading command modules... ',
+            color: 'yellow'
         },
         { text: `[${getTimestamp()}]`, color: 'gray' }
     ]);
@@ -333,7 +332,7 @@ function displayLoadResults(results) {
     const failCount = results.length - successCount;
 
     addOutputLine([
-        { text: '\nCommand modules loaded: ', color: 'green', style: 'bold' },
+        { text: '\n' },
         { text: `${successCount} succeeded, `, color: 'green' },
         {
             text: `${failCount} failed. `,
@@ -346,7 +345,7 @@ function displayLoadResults(results) {
 function displayLoadError(error) {
     addOutputLine([
         {
-            text: '\nError loading command modules: ',
+            text: '\nerror loading command modules: ',
             color: 'red',
             style: 'bold'
         },
@@ -357,7 +356,7 @@ function displayLoadError(error) {
 
 export async function initializeTerminal() {
     await loadCommandModules();
-    addOutputLine('Type "help" for a list of available commands.');
+    addOutputLine('type "help" for a list of available commands.');
     updatePrompt();
     inputElement.focus();
 }

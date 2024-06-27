@@ -6,15 +6,17 @@ export function registerCommandDescription(name, description) {
     commandDescriptions.set(name, description);
 }
 
-registerCommand('help', 'Show available commands', () => {
+registerCommand('help', 'show available commands', () => {
     addOutputLine({
-        text: 'Available commands:',
-        color: 'green',
-        style: 'bold'
+        text: 'available commands:',
+        color: 'green'
     });
     for (const [name, description] of commandDescriptions) {
-        addOutputLine({ text: `  ${name}: ${description}`, color: 'cyan' });
+        addOutputLine([
+            { text: `  ${name} `, color: 'cyan' },
+            { text: description, color: 'gray' }
+        ]);
     }
 });
 
-registerCommandDescription('help', 'Show available commands');
+registerCommandDescription('help', 'show available commands');
