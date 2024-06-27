@@ -1,6 +1,7 @@
 import { fileSystem, saveFileSystem } from './fileSystem.js';
 import { terminalAPI } from './terminalAPI.js';
 import { getFileContents } from './fileSystem.js';
+import { scriptParser } from './scriptParser.js';
 
 const terminal = document.getElementById('terminal');
 const output = document.getElementById('output');
@@ -117,13 +118,12 @@ async function executeScript(scriptPath) {
         return;
     }
 
-    const lines = scriptContent.split('\n');
-    for (const line of lines) {
-        const trimmedLine = line.trim();
-        if (trimmedLine && !trimmedLine.startsWith('#')) {
-            await processCommand(trimmedLine, true);
-        }
-    }
+    addOutputLine({ text: `Executing script: ${scriptPath}`, color: 'cyan' });
+    await scriptParser.executeScript(scriptContent);
+    addOutputLine({
+        text: `Script execution completed: ${scriptPath}`,
+        color: 'cyan'
+    });
 }
 
 function resolvePath(path) {
