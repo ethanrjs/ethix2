@@ -117,11 +117,11 @@ function processCommand(command) {
 
 function moveCursorToEnd() {
     const range = document.createRange();
-    const sel = window.getSelection();
+    const selection = window.getSelection();
     range.selectNodeContents(inputElement);
     range.collapse(false);
-    sel.removeAllRanges();
-    sel.addRange(range);
+    selection.removeAllRanges();
+    selection.addRange(range);
 }
 
 function getTimestamp() {
