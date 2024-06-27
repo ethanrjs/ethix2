@@ -1,7 +1,5 @@
 const express = require('express');
 const path = require('path');
-const helmet = require('helmet');
-const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandlers');
 const routes = require('./routes');
@@ -11,7 +9,6 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(helmet()); // Adds various HTTP headers for security
 app.use(express.json());
 app.use(express.static('public'));
 
