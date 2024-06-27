@@ -223,7 +223,7 @@ The file system provides several key functions that are used by various commands
 
 ETX Script is a simple scripting language designed for basic automation tasks. It supports variable assignment, arithmetic operations, conditional statements, loops, and execution of shell commands.
 
-## Language Features
+## ETX Language Features
 
 ### Comments
 
@@ -332,7 +332,7 @@ The `ETXScriptParser` class implements the following methods:
 -   The current implementation uses JavaScript's `eval()` for expression evaluation, which can be a security risk if not properly sanitized.
 -   Error handling could be improved to provide more detailed error messages.
 -   The parser doesn't support user-defined functions or more complex data structures.
--   Nested loops and conditionals are supported, but care should be taken to ensure proper nesting.
+-   Nested loops and conditionals _are_ supported, but care should be taken to ensure proper nesting.
 
 ## Usage
 
@@ -340,7 +340,7 @@ To use the ETX Script Parser:
 
 1. Create a script file with a `.etx` extension (e.g., `script.etx`).
 2. Write your script using the language features described above.
-3. Execute the script using the command: `./script.etx` or `etx script.etx` (depending on your setup).
+3. Execute the script using the command: `./script.etx` (depending on your setup).
 
 Remember to handle the script execution carefully, as it can execute arbitrary shell commands.
 
