@@ -1,14 +1,5 @@
-import {
-    registerCommand,
-    addOutputLine,
-    getCurrentDirectory
-} from '../terminal.js';
-import {
-    fileSystem,
-    getDirectoryContents,
-    getFileContents
-} from '../fileSystem.js';
-import { terminalAPI } from '../terminalAPI.js';
+import { registerCommand, addOutputLine } from '../terminal.js';
+import { getDirectoryContents, getFileContents } from '../fileSystem.js';
 import { registerCommandDescription } from './help.js';
 
 const COLORS = {
@@ -71,7 +62,6 @@ function searchFiles(searchTerm, searchContent = false, currentPath = '/') {
                     contentMatches: []
                 });
             }
-            // Continue searching inside the directory
             results.push(
                 ...searchFiles(searchTerm, searchContent, `${fullPath}/`)
             );
