@@ -16,7 +16,8 @@ const COLORS = {
     filePath: '#87cefa',
     matchedText: '#ff1493',
     header: '#ff4500',
-    contentMatch: '#ffa500'
+    contentMatch: '#ffa500',
+    directoryName: '#4169E1'
 };
 
 function colorize(text, color) {
@@ -57,41 +58,53 @@ function searchFiles(searchTerm, searchContent = false, currentPath = '/') {
 
     for (const [name, item] of Object.entries(contents)) {
         const fullPath = `${currentPath}${name}`;
+        const nameScore = fuzzyMatch(name, searchTerm);
 
-        if (item.type === 'file') {
-            const nameScore = fuzzyMatch(name, searchTerm);
-            let contentScore = 0;
-            let contentMatch = null;
+        if (item.type === 'directory') {
+            if (nameScore > 0) {
+                results.push({
+                    name,
+                    path: fullPath,
+                    type: 'directory',
+                    score: nameScore,
+                    nameScore,
+                    contentMatches: []
+                });
+            }
+            // Continue searching inside the directory
+            results.push(
+                ...searchFiles(searchTerm, searchContent, `${fullPath}/`)
+            );
+        } else if (item.type === 'file') {
+            let contentMatches = [];
 
             if (searchContent) {
                 const fileContent = getFileContents(fullPath);
-                contentScore = fuzzyMatch(fileContent, searchTerm);
-                if (contentScore > 0) {
-                    const lines = fileContent.split('\n');
-                    for (let i = 0; i < lines.length; i++) {
-                        if (fuzzyMatch(lines[i], searchTerm) > 0) {
-                            contentMatch = { line: i + 1, content: lines[i] };
-                            break;
-                        }
+                const lines = fileContent.split('\n');
+                for (let i = 0; i < lines.length; i++) {
+                    const lineScore = fuzzyMatch(lines[i], searchTerm);
+                    if (lineScore > 0) {
+                        contentMatches.push({
+                            line: i + 1,
+                            content: lines[i],
+                            score: lineScore
+                        });
                     }
                 }
             }
 
-            const totalScore = nameScore + contentScore;
+            const totalScore = nameScore + (contentMatches.length > 0 ? 1 : 0);
 
-            if (totalScore > 0) {
+            if (totalScore > 0 || contentMatches.length > 0) {
                 results.push({
                     name,
                     path: fullPath,
                     type: 'file',
                     score: totalScore,
-                    contentMatch
+                    nameScore,
+                    contentMatches
                 });
             }
-        } else if (item.type === 'directory') {
-            results.push(
-                ...searchFiles(searchTerm, searchContent, `${fullPath}/`)
-            );
         }
     }
 
@@ -102,7 +115,11 @@ function renderResults(results, searchTerm, limit = 10) {
     const header = colorize('=== Results ===', COLORS.header);
     addOutputLine(header);
 
-    results.sort((a, b) => b.score - a.score);
+    results.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return b.contentMatches.length - a.contentMatches.length;
+    });
+
     const topResults = results.slice(0, limit);
 
     topResults.forEach(result => {
@@ -110,18 +127,23 @@ function renderResults(results, searchTerm, limit = 10) {
         line +=
             colorize(
                 highlightMatches(result.name, searchTerm),
-                COLORS.fileName
+                result.type === 'directory'
+                    ? COLORS.directoryName
+                    : COLORS.fileName
             ) + ' ';
         line += colorize(result.path, COLORS.filePath);
         addOutputLine(line);
 
-        if (result.contentMatch) {
-            const { line: lineNumber, content } = result.contentMatch;
-            const contentLine = `  Line ${lineNumber}: ${highlightMatches(
-                content.trim(),
-                searchTerm
-            )}`;
-            addOutputLine(colorize(contentLine, COLORS.contentMatch));
+        if (result.type === 'file') {
+            result.contentMatches.forEach(
+                ({ line: lineNumber, content, score }) => {
+                    const contentLine = `  ${lineNumber}]: ${highlightMatches(
+                        content.trim(),
+                        searchTerm
+                    )}`;
+                    addOutputLine(colorize(contentLine, COLORS.contentMatch));
+                }
+            );
         }
     });
 
@@ -143,11 +165,19 @@ function fzf(args) {
     renderResults(results, searchTerm);
 
     addOutputLine({
-        text: `\nTotal results: ${results.length}`,
+        text: `\nTotal files with matches: ${results.length}`,
+        color: 'cyan'
+    });
+
+    const totalMatches = results.reduce(
+        (sum, result) => sum + result.contentMatches.length,
+        0
+    );
+    addOutputLine({
+        text: `Total matching lines: ${totalMatches}`,
         color: 'cyan'
     });
 }
-
 registerCommand('fzf', 'Fuzzy find files and content', fzf);
 registerCommandDescription(
     'fzf',
