@@ -166,8 +166,9 @@ function getFileSize(path) {
 function resolvePath(path) {
     const currentDir = getCurrentDirectory();
 
-    const absolutePath = path.startsWith('/') ? path : `${currentDir}/${path}`;
-    const segments = absolutePath.split('/').filter(segment => segment !== '');
+    const segments = (path.startsWith('/') ? path : `${currentDir}/${path}`)
+        .split('/')
+        .filter(segment => segment !== '');
 
     const resolvedSegments = [];
 
