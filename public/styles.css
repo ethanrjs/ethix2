@@ -40,7 +40,7 @@ html {
 .output-line {
     margin-bottom: 10px;
     white-space: pre-wrap;
-    word-break: break-all;
+    word-break: keep-all;
 }
 
 #cursor {
@@ -49,14 +49,14 @@ html {
 
 @media only screen and (max-width: 600px) {
     #input {
-        font-size: 14px;
+        font-size: 12px;
     }
 
     #prompt {
-        font-size: 14px;
+        font-size: 12px;
     }
 
     .output-line {
-        font-size: 14px;
+        font-size: 12px;
     }
 }
