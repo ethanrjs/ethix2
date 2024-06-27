@@ -2,9 +2,12 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs').promises;
 const packageRepository = require('./package-repository');
+const NodeCache = require('node-cache');
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+const cache = new NodeCache({ stdTTL: 600 });
 
 app.use(express.static('public'));
 
@@ -16,9 +19,21 @@ app.use(express.json());
 
 app.get('/api/command-modules', async (req, res) => {
     try {
-        const commandsDir = path.join(__dirname, 'public', 'js', 'commands');
-        const files = await fs.readdir(commandsDir);
-        const jsFiles = files.filter(file => file.endsWith('.js'));
+        const cacheKey = 'command-modules';
+        let jsFiles = cache.get(cacheKey);
+
+        if (jsFiles == undefined) {
+            const commandsDir = path.join(
+                __dirname,
+                'public',
+                'js',
+                'commands'
+            );
+            const files = await fs.readdir(commandsDir);
+            jsFiles = files.filter(file => file.endsWith('.js'));
+            cache.set(cacheKey, jsFiles);
+        }
+
         res.json(jsFiles);
     } catch (error) {
         console.error('Error reading command modules:', error);
@@ -28,7 +43,15 @@ app.get('/api/command-modules', async (req, res) => {
 
 app.get('/api/packages/:packageName', (req, res) => {
     const packageName = req.params.packageName;
-    const packageInfo = packageRepository.getPackage(packageName);
+    const cacheKey = `package:${packageName}`;
+    let packageInfo = cache.get(cacheKey);
+
+    if (packageInfo == undefined) {
+        packageInfo = packageRepository.getPackage(packageName);
+        if (packageInfo) {
+            cache.set(cacheKey, packageInfo);
+        }
+    }
 
     if (packageInfo) {
         res.json(packageInfo);
@@ -38,7 +61,14 @@ app.get('/api/packages/:packageName', (req, res) => {
 });
 
 app.get('/api/packages', (req, res) => {
-    const packages = packageRepository.getAllPackages();
+    const cacheKey = 'all-packages';
+    let packages = cache.get(cacheKey);
+
+    if (packages == undefined) {
+        packages = packageRepository.getAllPackages();
+        cache.set(cacheKey, packages);
+    }
+
     res.json(packages);
 });
 
@@ -69,6 +99,10 @@ app.post('/api/packages', async (req, res) => {
         packageInfo.name = `${packageInfo.name}@${packageInfo.version}`;
 
         await packageRepository.savePackage(packageInfo);
+
+        cache.del('all-packages');
+        cache.del(`package:${packageInfo.name}`);
+
         res.status(201).json({
             message: 'Package saved successfully',
             version: packageInfo.version
@@ -83,6 +117,10 @@ app.delete('/api/packages/:packageName', async (req, res) => {
     try {
         const packageName = req.params.packageName;
         await packageRepository.deletePackage(packageName);
+
+        cache.del('all-packages');
+        cache.del(`package:${packageName}`);
+
         res.json({ message: 'Package deleted successfully' });
     } catch (error) {
         console.error('Error deleting package:', error);
