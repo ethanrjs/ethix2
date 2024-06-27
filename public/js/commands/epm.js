@@ -16,7 +16,7 @@ import { terminalAPI } from '../terminalAPI.js';
 import { registerCommandDescription } from './help.js';
 
 async function installPackage(packageNameOrPath) {
-    const packagesDir = fileSystem['/'].contents['packages'].contents;
+    const packagesDir = getDirectoryContents('/packages');
     const currentDir = getCurrentDirectory();
     const localPackagePath = `${currentDir}/${packageNameOrPath}`.replace(
         /\/+/g,
@@ -115,7 +115,7 @@ async function installPackage(packageNameOrPath) {
 }
 
 async function uninstallPackage(packageName) {
-    const packagesDir = fileSystem['/'].contents['packages'].contents;
+    const packagesDir = getDirectoryContents('/packages');
     if (packagesDir[packageName]) {
         if (deleteItem(`/packages/${packageName}`)) {
             addOutputLine({
@@ -138,7 +138,7 @@ async function uninstallPackage(packageName) {
 }
 
 function listPackages() {
-    const packages = Object.keys(fileSystem['/'].contents['packages'].contents);
+    const packages = Object.keys(getDirectoryContents('/packages'));
     if (packages.length === 0) {
         addOutputLine({ text: 'No packages installed.', color: 'yellow' });
     } else {
@@ -254,12 +254,12 @@ async function updatePackage(packageName) {
         const response = await fetch(`/api/packages/${packageName}`);
         if (!response.ok) {
             throw new Error(
-                `Failed to fetch package information for ${packageName}`
+                `Package ${packageName} does not exist or repository is down`
             );
         }
         const packageInfo = await response.json();
 
-        const packagesDir = fileSystem['/'].contents['packages'].contents;
+        const packagesDir = getDirectoryContents('/packages');
         if (!packagesDir[packageName]) {
             throw new Error(`Package ${packageName} is not installed`);
         }
@@ -307,7 +307,7 @@ async function updatePackage(packageName) {
 }
 
 async function updateAllPackages() {
-    const packagesDir = fileSystem['/'].contents['packages'].contents;
+    const packagesDir = getDirectoryContents('/packages');
     const packageNames = Object.keys(packagesDir);
 
     if (packageNames.length === 0) {
