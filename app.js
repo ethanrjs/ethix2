@@ -6,14 +6,12 @@ const rateLimit = require('express-rate-limit');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandlers');
 const routes = require('./routes');
 const packageRepository = require('./package-repository');
-const logger = require('./utils/logger');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(helmet()); // Adds various HTTP headers for security
-app.use(morgan('combined', { stream: logger.stream })); // Logging
 app.use(express.json());
 app.use(express.static('public'));
 
@@ -45,11 +43,10 @@ app.use(errorHandler);
 async function startServer() {
     try {
         await packageRepository.initialize();
-        app.listen(port, () => {
-            logger.info(`Server running at http://localhost:${port}`);
-        });
+        app.listen(port, () => {});
+        console.log('started');
     } catch (error) {
-        logger.error('Failed to start server:', error);
+        console.error('Failed to start server:', error);
         process.exit(1);
     }
 }
