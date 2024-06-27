@@ -1,6 +1,5 @@
-import { fileSystem, saveFileSystem } from './fileSystem.js';
+import { fileSystem, saveFileSystem, getFileContents } from './fileSystem.js';
 import { terminalAPI } from './terminalAPI.js';
-import { getFileContents } from './fileSystem.js';
 import { scriptParser } from './scriptParser.js';
 
 const terminal = document.getElementById('terminal');
@@ -9,10 +8,12 @@ const inputLine = document.getElementById('input-line');
 const promptElement = document.getElementById('prompt');
 const inputElement = document.getElementById('input');
 
-let currentDirectory = '/';
-let commandHistory = [];
-let historyIndex = -1;
-let isEditMode = false;
+const state = {
+    currentDirectory: '/',
+    commandHistory: [],
+    historyIndex: -1,
+    isEditMode: false
+};
 
 const commands = {};
 
@@ -42,60 +43,68 @@ export function addOutputLine(segments, options = {}) {
     segments = Array.isArray(segments) ? segments : [segments];
 
     segments.forEach(segment => {
-        let span = document.createElement('span');
-
-        if (typeof segment === 'string') {
-            span.innerHTML = segment;
-        } else if (typeof segment === 'object' && segment !== null) {
-            const { text = '', color, backgroundColor, style } = segment;
-            span.innerHTML = text;
-
-            let styles = [];
-
-            if (color && COLORS[color]) {
-                styles.push(`color: ${COLORS[color]}`);
-            }
-
-            if (backgroundColor && COLORS[backgroundColor]) {
-                styles.push(`background-color: ${COLORS[backgroundColor]}`);
-            }
-
-            if (style) {
-                const additionalStyles = style
-                    .split(',')
-                    .map(s => STYLES[s.trim()])
-                    .filter(Boolean);
-                styles = styles.concat(additionalStyles);
-            }
-
-            if (styles.length > 0) {
-                span.style.cssText = styles.join('; ');
-            }
-        } else {
-            return;
-        }
-
-        line.appendChild(span);
+        const span = createSegmentSpan(segment);
+        if (span) line.appendChild(span);
     });
 
-    if (options.isCommand && promptElement && promptElement.textContent) {
-        const promptSpan = document.createElement('span');
-        promptSpan.textContent = promptElement.textContent + ' ';
-        promptSpan.style.color = COLORS.green;
+    if (options.isCommand && promptElement?.textContent) {
+        const promptSpan = createPromptSpan();
         line.insertBefore(promptSpan, line.firstChild);
     }
 
-    if (options.ascii) {
+    appendLineToOutput(line, options.ascii);
+    scrollToBottom();
+}
+
+function createSegmentSpan(segment) {
+    if (typeof segment === 'string') {
+        const span = document.createElement('span');
+        span.innerHTML = segment;
+        return span;
+    } else if (typeof segment === 'object' && segment !== null) {
+        const { text = '', color, backgroundColor, style } = segment;
+        const span = document.createElement('span');
+        span.innerHTML = text;
+        applyStyles(span, color, backgroundColor, style);
+        return span;
+    }
+    return null;
+}
+
+function applyStyles(element, color, backgroundColor, style) {
+    const styles = [];
+    if (color && COLORS[color]) styles.push(`color: ${COLORS[color]}`);
+    if (backgroundColor && COLORS[backgroundColor])
+        styles.push(`background-color: ${COLORS[backgroundColor]}`);
+    if (style) {
+        const additionalStyles = style
+            .split(',')
+            .map(s => STYLES[s.trim()])
+            .filter(Boolean);
+        styles.push(...additionalStyles);
+    }
+    if (styles.length > 0) element.style.cssText = styles.join('; ');
+}
+
+function createPromptSpan() {
+    const promptSpan = document.createElement('span');
+    promptSpan.textContent = promptElement.textContent + ' ';
+    promptSpan.style.color = COLORS.green;
+    return promptSpan;
+}
+
+function appendLineToOutput(line, isAscii) {
+    if (isAscii) {
         const pre = document.createElement('pre');
         pre.appendChild(line);
         output.appendChild(pre);
     } else {
         output.appendChild(line);
     }
+}
 
-    if (terminal) {
-        terminal.scrollTop = terminal.scrollHeight;
-    }
+function scrollToBottom() {
+    if (terminal) terminal.scrollTop = terminal.scrollHeight;
 }
 
 export function registerCommand(name, description, action) {
@@ -103,7 +112,7 @@ export function registerCommand(name, description, action) {
 }
 
 function updatePrompt() {
-    promptElement.textContent = `${currentDirectory} $`;
+    promptElement.textContent = `${state.currentDirectory} $`;
 }
 
 async function executeScript(scriptPath) {
@@ -127,31 +136,21 @@ async function executeScript(scriptPath) {
 }
 
 function resolvePath(path) {
-    const currentDir = getCurrentDirectory();
-
+    const currentDir = state.currentDirectory;
     const absolutePath = path.startsWith('/') ? path : `${currentDir}/${path}`;
-    const segments = absolutePath.split('/').filter(segment => segment !== '');
-
+    const segments = absolutePath.split('/').filter(Boolean);
     const resolvedSegments = [];
 
     for (const segment of segments) {
-        if (segment === '.') {
-            continue;
-        } else if (segment === '..') {
-            if (resolvedSegments.length > 0) {
-                resolvedSegments.pop();
-            }
+        if (segment === '.') continue;
+        if (segment === '..') {
+            if (resolvedSegments.length > 0) resolvedSegments.pop();
         } else {
             resolvedSegments.push(segment);
         }
     }
 
-    let resolvedPath = '/' + resolvedSegments.join('/');
-    if (resolvedPath === '') {
-        resolvedPath = '/';
-    }
-
-    return resolvedPath;
+    return '/' + resolvedSegments.join('/') || '/';
 }
 
 export async function processCommand(input, hidden = false) {
@@ -182,64 +181,89 @@ function moveCursorToEnd() {
 }
 
 function getTimestamp() {
-    const now = new Date();
-    return now.toLocaleTimeString('en-US', { hour12: false });
+    return new Date().toLocaleTimeString('en-US', { hour12: false });
 }
 
-inputElement.addEventListener('input', e => {
+function handleInput(e) {
     const selection = window.getSelection();
     const cursorPosition = selection.focusOffset;
-
     const newContent = inputElement.textContent.replace(/\n/g, '');
 
     if (newContent !== inputElement.textContent) {
         inputElement.textContent = newContent;
-
-        const range = document.createRange();
-        const textNode = inputElement.firstChild || inputElement;
-        const newPosition = Math.min(cursorPosition, newContent.length);
-        range.setStart(textNode, newPosition);
-        range.setEnd(textNode, newPosition);
-        selection.removeAllRanges();
-        selection.addRange(range);
+        setCursorPosition(cursorPosition, newContent.length);
     }
-});
+}
 
-inputElement.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        const command = inputElement.textContent.trim();
-        if (command) {
-            processCommand(command);
-            commandHistory.unshift(command);
-            historyIndex = -1;
-            inputElement.textContent = '';
+function setCursorPosition(cursorPosition, maxLength) {
+    const range = document.createRange();
+    const selection = window.getSelection();
+    const textNode = inputElement.firstChild || inputElement;
+    const newPosition = Math.min(cursorPosition, maxLength);
+    range.setStart(textNode, newPosition);
+    range.setEnd(textNode, newPosition);
+    selection.removeAllRanges();
+    selection.addRange(range);
+}
 
-            if (terminalAPI.inputCallbacks.length > 0) {
-                const callback = terminalAPI.inputCallbacks.shift();
-                callback(command);
-            }
-        }
-    } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        if (historyIndex < commandHistory.length - 1) {
-            historyIndex++;
-            inputElement.textContent = commandHistory[historyIndex];
-            moveCursorToEnd();
-        }
-    } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        if (historyIndex > -1) {
-            historyIndex--;
-            inputElement.textContent =
-                historyIndex === -1 ? '' : commandHistory[historyIndex];
-            moveCursorToEnd();
-        }
-    } else if (e.key === 'Tab') {
-        e.preventDefault();
-        autocomplete();
+function handleKeyDown(e) {
+    switch (e.key) {
+        case 'Enter':
+            handleEnterKey(e);
+            break;
+        case 'ArrowUp':
+            handleArrowUpKey(e);
+            break;
+        case 'ArrowDown':
+            handleArrowDownKey(e);
+            break;
+        case 'Tab':
+            handleTabKey(e);
+            break;
     }
-});
+}
+
+function handleEnterKey(e) {
+    e.preventDefault();
+    const command = inputElement.textContent.trim();
+    if (command) {
+        processCommand(command);
+        state.commandHistory.unshift(command);
+        state.historyIndex = -1;
+        inputElement.textContent = '';
+
+        if (terminalAPI.inputCallbacks.length > 0) {
+            const callback = terminalAPI.inputCallbacks.shift();
+            callback(command);
+        }
+    }
+}
+
+function handleArrowUpKey(e) {
+    e.preventDefault();
+    if (state.historyIndex < state.commandHistory.length - 1) {
+        state.historyIndex++;
+        inputElement.textContent = state.commandHistory[state.historyIndex];
+        moveCursorToEnd();
+    }
+}
+
+function handleArrowDownKey(e) {
+    e.preventDefault();
+    if (state.historyIndex > -1) {
+        state.historyIndex--;
+        inputElement.textContent =
+            state.historyIndex === -1
+                ? ''
+                : state.commandHistory[state.historyIndex];
+        moveCursorToEnd();
+    }
+}
+
+function handleTabKey(e) {
+    e.preventDefault();
+    autocomplete();
+}
 
 function autocomplete() {
     const input = inputElement.textContent.trim();
@@ -269,75 +293,84 @@ async function loadCommandModules() {
     ]);
 
     try {
-        const response = await fetch('/api/command-modules');
-        let modules = await response.json();
-
-        const helpIndex = modules.indexOf('help.js');
-        if (helpIndex > -1) {
-            modules = ['help.js', ...modules.filter(m => m !== 'help.js')];
-        }
-
-        const loadPromises = modules.map(async module => {
-            const startTime = performance.now();
-            try {
-                await import(`/js/commands/${module}`);
-                const loadTime = (performance.now() - startTime).toFixed(2);
-                return { module, success: true, loadTime };
-            } catch (error) {
-                return { module, success: false, error: error.message };
-            }
-        });
-
-        const results = await Promise.all(loadPromises);
-
-        results.forEach(({ module, success, loadTime, error }) => {
-            if (success) {
-                addOutputLine([
-                    { text: `  ✓ ${module}`, color: 'green' },
-                    { text: ` (${loadTime}ms)`, color: 'gray' },
-                    { text: ` [${getTimestamp()}]`, color: 'gray' }
-                ]);
-            } else {
-                addOutputLine([
-                    { text: `  ✗ ${module}`, color: 'red' },
-                    { text: ` [${getTimestamp()}]`, color: 'gray' }
-                ]);
-                addOutputLine(`    Error: ${error}`, {
-                    color: 'red',
-                    style: 'italic'
-                });
-            }
-        });
-
-        const successCount = results.filter(r => r.success).length;
-        const failCount = results.length - successCount;
-
-        addOutputLine([
-            {
-                text: '\nCommand modules loaded: ',
-                color: 'green',
-                style: 'bold'
-            },
-            { text: `${successCount} succeeded, `, color: 'green' },
-            {
-                text: `${failCount} failed. `,
-                color: failCount > 0 ? 'red' : 'green'
-            },
-            { text: `[${getTimestamp()}]`, color: 'gray' }
-        ]);
+        const modules = await fetchCommandModules();
+        const results = await loadModules(modules);
+        displayLoadResults(results);
     } catch (error) {
-        addOutputLine([
-            {
-                text: '\nError loading command modules: ',
-                color: 'red',
-                style: 'bold'
-            },
-            { text: `[${getTimestamp()}]`, color: 'gray' }
-        ]);
-        addOutputLine(`  ${error.message}`, { color: 'red' });
+        displayLoadError(error);
     }
 
     addOutputLine('');
+}
+
+async function fetchCommandModules() {
+    const response = await fetch('/api/command-modules');
+    let modules = await response.json();
+    const helpIndex = modules.indexOf('help.js');
+    if (helpIndex > -1) {
+        modules = ['help.js', ...modules.filter(m => m !== 'help.js')];
+    }
+    return modules;
+}
+
+async function loadModules(modules) {
+    const loadPromises = modules.map(async module => {
+        const startTime = performance.now();
+        try {
+            await import(`/js/commands/${module}`);
+            const loadTime = (performance.now() - startTime).toFixed(2);
+            return { module, success: true, loadTime };
+        } catch (error) {
+            return { module, success: false, error: error.message };
+        }
+    });
+    return await Promise.all(loadPromises);
+}
+
+function displayLoadResults(results) {
+    results.forEach(({ module, success, loadTime, error }) => {
+        if (success) {
+            addOutputLine([
+                { text: `  ✓ ${module}`, color: 'green' },
+                { text: ` (${loadTime}ms)`, color: 'gray' },
+                { text: ` [${getTimestamp()}]`, color: 'gray' }
+            ]);
+        } else {
+            addOutputLine([
+                { text: `  ✗ ${module}`, color: 'red' },
+                { text: ` [${getTimestamp()}]`, color: 'gray' }
+            ]);
+            addOutputLine(`    Error: ${error}`, {
+                color: 'red',
+                style: 'italic'
+            });
+        }
+    });
+
+    const successCount = results.filter(r => r.success).length;
+    const failCount = results.length - successCount;
+
+    addOutputLine([
+        { text: '\nCommand modules loaded: ', color: 'green', style: 'bold' },
+        { text: `${successCount} succeeded, `, color: 'green' },
+        {
+            text: `${failCount} failed. `,
+            color: failCount > 0 ? 'red' : 'green'
+        },
+        { text: `[${getTimestamp()}]`, color: 'gray' }
+    ]);
+}
+
+function displayLoadError(error) {
+    addOutputLine([
+        {
+            text: '\nError loading command modules: ',
+            color: 'red',
+            style: 'bold'
+        },
+        { text: `[${getTimestamp()}]`, color: 'gray' }
+    ]);
+    addOutputLine(`  ${error.message}`, { color: 'red' });
 }
 
 export async function initializeTerminal() {
@@ -348,71 +381,82 @@ export async function initializeTerminal() {
 }
 
 export function getCurrentDirectory() {
-    return currentDirectory;
+    return state.currentDirectory;
 }
 
 export function setCurrentDirectory(newDir) {
-    currentDirectory = newDir;
+    state.currentDirectory = newDir;
     updatePrompt();
 }
 
-initializeTerminal();
-
 export function enterEditMode(fileName, initialContent, saveCallback) {
-    isEditMode = true;
+    state.isEditMode = true;
     terminal.innerHTML = '';
 
-    const editorContainer = document.createElement('div');
-    editorContainer.id = 'editor-container';
-    editorContainer.style.height = '100%';
-    editorContainer.style.display = 'flex';
-    editorContainer.style.flexDirection = 'column';
+    const editorContainer = createEditorContainer(fileName);
+    const editorTextarea = createEditorTextarea(initialContent);
 
-    const editorHeader = document.createElement('div');
-    editorHeader.textContent = `Editing: ${fileName} (Press Ctrl+S to save, Ctrl+Q to quit)`;
-    editorHeader.style.padding = '5px';
-    editorHeader.style.backgroundColor = '#333';
-    editorHeader.style.color = '#fff';
-
-    const editorTextarea = document.createElement('textarea');
-    editorTextarea.value = initialContent;
-    editorTextarea.style.flexGrow = '1';
-    editorTextarea.style.width = '100%';
-    editorTextarea.style.backgroundColor = '#1e1e1e';
-    editorTextarea.style.color = '#f0f0f0';
-    editorTextarea.style.border = 'none';
-    editorTextarea.style.padding = '10px';
-    editorTextarea.style.fontSize = '16px';
-    editorTextarea.style.resize = 'none';
-    editorTextarea.style.outline = 'none';
-    editorTextarea.style.fontFamily = 'IBM Plex Mono, monospace';
-    editorTextarea.spellcheck = false;
-    editorTextarea.setAttribute('autocorrect', 'off');
-    editorTextarea.setAttribute('autocapitalize', 'off');
-
-    editorContainer.appendChild(editorHeader);
+    editorContainer.appendChild(createEditorHeader(fileName));
     editorContainer.appendChild(editorTextarea);
     terminal.appendChild(editorContainer);
 
     editorTextarea.focus();
 
-    editorTextarea.addEventListener('keydown', e => {
-        if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            saveCallback(editorTextarea.value);
-        } else if (e.ctrlKey && e.key === 'q') {
-            e.preventDefault();
-            exitEditMode();
-        }
-    });
+    editorTextarea.addEventListener('keydown', e =>
+        handleEditorKeyDown(e, saveCallback)
+    );
+}
+
+function createEditorContainer(fileName) {
+    const container = document.createElement('div');
+    container.id = 'editor-container';
+    container.style.cssText =
+        'height: 100%; display: flex; flex-direction: column;';
+    return container;
+}
+
+function createEditorHeader(fileName) {
+    const header = document.createElement('div');
+    header.textContent = `Editing: ${fileName} (Press Ctrl+S to save, Ctrl+Q to quit)`;
+    header.style.cssText = 'padding: 5px; background-color: #333; color: #fff;';
+    return header;
+}
+
+function createEditorTextarea(initialContent) {
+    const textarea = document.createElement('textarea');
+    textarea.value = initialContent;
+    textarea.style.cssText = `
+        flex-grow: 1; width: 100%; background-color: #1e1e1e; color: #f0f0f0;
+        border: none; padding: 10px; font-size: 16px; resize: none; outline: none;
+        font-family: 'IBM Plex Mono', monospace;
+    `;
+    textarea.spellcheck = false;
+    textarea.setAttribute('autocorrect', 'off');
+    textarea.setAttribute('autocapitalize', 'off');
+    return textarea;
+}
+
+function handleEditorKeyDown(e, saveCallback) {
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        saveCallback(e.target.value);
+    } else if (e.ctrlKey && e.key === 'q') {
+        e.preventDefault();
+        exitEditMode();
+    }
 }
 
 export function exitEditMode() {
-    isEditMode = false;
+    state.isEditMode = false;
     terminal.innerHTML = '';
     terminal.appendChild(output);
     terminal.appendChild(inputLine);
     inputElement.focus();
 }
+
+inputElement.addEventListener('input', handleInput);
+inputElement.addEventListener('keydown', handleKeyDown);
+
+initializeTerminal();
 
 export { fileSystem, updatePrompt, inputElement };
