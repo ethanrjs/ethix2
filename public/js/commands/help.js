@@ -17,5 +17,4 @@ registerCommand('help', 'Show available commands', () => {
     }
 });
 
-// Register the help command's own description
 registerCommandDescription('help', 'Show available commands');

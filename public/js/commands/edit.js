@@ -1,4 +1,3 @@
-// edit.js
 import {
     registerCommand,
     addOutputLine,

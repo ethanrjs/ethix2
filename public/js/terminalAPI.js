@@ -1,4 +1,3 @@
-// terminalAPI.js
 const output = document.getElementById('output');
 const terminal = document.getElementById('terminal');
 

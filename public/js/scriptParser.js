@@ -1,4 +1,3 @@
-// scriptParser.js
 import { addOutputLine, processCommand } from './terminal.js';
 
 class ETXScriptParser {

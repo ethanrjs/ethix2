@@ -1,4 +1,3 @@
-// fzf.js
 import {
     registerCommand,
     addOutputLine,
@@ -13,11 +12,11 @@ import { terminalAPI } from '../terminalAPI.js';
 import { registerCommandDescription } from './help.js';
 
 const COLORS = {
-    fileName: '#00ff00', // Bright Green
-    filePath: '#87cefa', // Light Sky Blue
-    matchedText: '#ff1493', // Deep Pink
-    header: '#ff4500', // Orange Red
-    contentMatch: '#ffa500' // Orange
+    fileName: '#00ff00',
+    filePath: '#87cefa',
+    matchedText: '#ff1493',
+    header: '#ff4500',
+    contentMatch: '#ffa500'
 };
 
 function colorize(text, color) {

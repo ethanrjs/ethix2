@@ -1,10 +1,5 @@
-// mkdir.js
-import {
-    registerCommand,
-    addOutputLine,
-    getCurrentDirectory
-} from '../terminal.js';
-import { createDirectory } from '../fileSystem.js';
+import { registerCommand, addOutputLine } from '../terminal.js';
+import { createDirectory, resolvePath } from '../fileSystem.js';
 
 registerCommand('mkdir', 'Create a directory', args => {
     if (args.length === 0) {
@@ -20,7 +15,3 @@ registerCommand('mkdir', 'Create a directory', args => {
         );
     }
 });
-
-function resolvePath(path) {
-    // Implementation similar to cd.js
-}

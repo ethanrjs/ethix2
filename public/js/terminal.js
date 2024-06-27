@@ -1,7 +1,7 @@
 import { fileSystem, saveFileSystem, getFileContents } from './fileSystem.js';
 import { terminalAPI } from './terminalAPI.js';
 import { scriptParser } from './scriptParser.js';
-
+import { resolvePath } from './fileSystem.js';
 const terminal = document.getElementById('terminal');
 const output = document.getElementById('output');
 const inputLine = document.getElementById('input-line');
@@ -133,24 +133,6 @@ async function executeScript(scriptPath) {
         text: `Script execution completed: ${scriptPath}`,
         color: 'cyan'
     });
-}
-
-function resolvePath(path) {
-    const currentDir = state.currentDirectory;
-    const absolutePath = path.startsWith('/') ? path : `${currentDir}/${path}`;
-    const segments = absolutePath.split('/').filter(Boolean);
-    const resolvedSegments = [];
-
-    for (const segment of segments) {
-        if (segment === '.') continue;
-        if (segment === '..') {
-            if (resolvedSegments.length > 0) resolvedSegments.pop();
-        } else {
-            resolvedSegments.push(segment);
-        }
-    }
-
-    return '/' + resolvedSegments.join('/') || '/';
 }
 
 export async function processCommand(input, hidden = false) {

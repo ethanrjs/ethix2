@@ -1,4 +1,5 @@
-// fileSystem.js
+import { getCurrentDirectory } from './terminal.js';
+
 let fileSystem = JSON.parse(localStorage.getItem('fileSystem')) || {
     '/': {
         type: 'directory',
@@ -32,7 +33,7 @@ function createDirectory(path) {
         const part = parts[i];
         if (i === parts.length - 1) {
             if (current.contents[part]) {
-                return false; // Directory already exists
+                return false;
             }
             current.contents[part] = { type: 'directory', contents: {} };
             return true;
@@ -41,7 +42,7 @@ function createDirectory(path) {
             !current.contents[part] ||
             current.contents[part].type !== 'directory'
         ) {
-            return false; // Parent directory doesn't exist
+            return false;
         }
         current = current.contents[part];
     }
@@ -57,14 +58,14 @@ function createFile(path, content) {
             !current.contents[part] ||
             current.contents[part].type !== 'directory'
         ) {
-            return false; // Parent directory doesn't exist
+            return false;
         }
         current = current.contents[part];
     }
     current.contents[fileName] = {
         type: 'file',
         content,
-        size: new TextEncoder().encode(content).length // Calculate size in bytes
+        size: new TextEncoder().encode(content).length
     };
     saveFileSystem();
     return true;
@@ -128,7 +129,7 @@ function deleteItem(path) {
             !current.contents[part] ||
             current.contents[part].type !== 'directory'
         ) {
-            return false; // Parent directory doesn't exist
+            return false;
         }
         current = current.contents[part];
     }
@@ -162,6 +163,34 @@ function getFileSize(path) {
     return null;
 }
 
+function resolvePath(path) {
+    const currentDir = getCurrentDirectory();
+
+    const absolutePath = path.startsWith('/') ? path : `${currentDir}/${path}`;
+    const segments = absolutePath.split('/').filter(segment => segment !== '');
+
+    const resolvedSegments = [];
+
+    for (const segment of segments) {
+        if (segment === '.') {
+            continue;
+        } else if (segment === '..') {
+            if (resolvedSegments.length > 0) {
+                resolvedSegments.pop();
+            }
+        } else {
+            resolvedSegments.push(segment);
+        }
+    }
+
+    let resolvedPath = '/' + resolvedSegments.join('/');
+    if (resolvedPath === '') {
+        resolvedPath = '/';
+    }
+
+    return resolvedPath;
+}
+
 export {
     fileSystem,
     saveFileSystem,
@@ -169,5 +198,6 @@ export {
     createDirectory,
     createFile,
     deleteItem,
-    getFileSize
+    getFileSize,
+    resolvePath
 };

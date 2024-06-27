@@ -1,4 +1,3 @@
-// create.js
 import {
     registerCommand,
     addOutputLine,

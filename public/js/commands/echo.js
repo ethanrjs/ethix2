@@ -1,4 +1,3 @@
-// echo.js
 import { registerCommand, addOutputLine } from '../terminal.js';
 
 const colorMap = {

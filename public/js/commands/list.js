@@ -1,4 +1,3 @@
-// list.js
 import { registerCommand, addOutputLine } from '../terminal.js';
 import { fileSystem } from '../fileSystem.js';
 

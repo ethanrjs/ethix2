@@ -6,22 +6,6 @@ import {
 import { deleteItem, getDirectoryContents } from '../fileSystem.js';
 import { registerCommandDescription } from './help.js';
 
-function resolvePath(path) {
-    const currentDir = getCurrentDirectory();
-    if (path.startsWith('/')) return path;
-    const absolutePath = `${currentDir}/${path}`.replace(/\/+/g, '/');
-    const parts = absolutePath.split('/').filter(Boolean);
-    const resolvedParts = [];
-    for (const part of parts) {
-        if (part === '..') {
-            resolvedParts.pop();
-        } else if (part !== '.') {
-            resolvedParts.push(part);
-        }
-    }
-    return '/' + resolvedParts.join('/');
-}
-
 function removeRecursive(path) {
     const contents = getDirectoryContents(path);
     if (contents) {

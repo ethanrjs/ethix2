@@ -1,11 +1,10 @@
-// ls.js
 import {
     registerCommand,
     addOutputLine,
     getCurrentDirectory,
     fileSystem
 } from '../terminal.js';
-import { getDirectoryContents } from '../fileSystem.js';
+import { getDirectoryContents, resolvePath } from '../fileSystem.js';
 import { registerCommandDescription } from './help.js';
 
 const MONTH_NAMES = [
@@ -41,10 +40,8 @@ function formatSize(size) {
     }
 
     if (unitIndex === 0) {
-        // For bytes, return without decimal places
         return `${Math.round(size)}${units[unitIndex]}`;
     } else {
-        // For KB and above, keep one decimal place
         return `${size.toFixed(1)}${units[unitIndex]}`;
     }
 }
@@ -79,7 +76,6 @@ registerCommand('ls', 'List directory contents', args => {
 
         const headers = ['Type', 'Permissions', 'Size', 'Modified', 'Name'];
 
-        // Calculate maximum lengths for alignment
         const maxLengths = headers.reduce((acc, header) => {
             acc[header.toLowerCase()] = Math.max(
                 header.length,
@@ -103,7 +99,6 @@ registerCommand('ls', 'List directory contents', args => {
             return acc;
         }, {});
 
-        // Header
         const headerLine = headers
             .map(header =>
                 padRight(header, maxLengths[header.toLowerCase()] - 1)
@@ -111,7 +106,6 @@ registerCommand('ls', 'List directory contents', args => {
             .join(' ');
         addOutputLine(headerLine, { color: 'gray' });
 
-        // Content
         items.forEach(item => {
             const line = [
                 padRight(item.itemType, maxLengths.type),
@@ -153,31 +147,3 @@ registerCommand('ls', 'List directory contents', args => {
 });
 
 registerCommandDescription('ls', 'List directory contents');
-
-function resolvePath(path) {
-    const currentDir = getCurrentDirectory();
-
-    const absolutePath = path.startsWith('/') ? path : `${currentDir}/${path}`;
-    const segments = absolutePath.split('/').filter(segment => segment !== '');
-
-    const resolvedSegments = [];
-
-    for (const segment of segments) {
-        if (segment === '.') {
-            continue;
-        } else if (segment === '..') {
-            if (resolvedSegments.length > 0) {
-                resolvedSegments.pop();
-            }
-        } else {
-            resolvedSegments.push(segment);
-        }
-    }
-
-    let resolvedPath = '/' + resolvedSegments.join('/');
-    if (resolvedPath === '') {
-        resolvedPath = '/';
-    }
-
-    return resolvedPath;
-}
