@@ -129,9 +129,27 @@ function getTimestamp() {
     return now.toLocaleTimeString('en-US', { hour12: false });
 }
 
-inputElement.addEventListener('input', () => {
-    // Ensure the input stays on one line
-    inputElement.textContent = inputElement.textContent.replace(/\n/g, '');
+inputElement.addEventListener('input', e => {
+    // Get the current cursor position
+    const selection = window.getSelection();
+    const cursorPosition = selection.focusOffset;
+
+    // Remove any newline characters
+    const newContent = inputElement.textContent.replace(/\n/g, '');
+
+    // Only update if content has changed
+    if (newContent !== inputElement.textContent) {
+        inputElement.textContent = newContent;
+
+        // Restore the cursor position
+        const range = document.createRange();
+        const textNode = inputElement.firstChild || inputElement;
+        const newPosition = Math.min(cursorPosition, newContent.length);
+        range.setStart(textNode, newPosition);
+        range.setEnd(textNode, newPosition);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
 });
 
 inputElement.addEventListener('keydown', e => {
