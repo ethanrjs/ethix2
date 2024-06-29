@@ -4,6 +4,7 @@ const cache = require('./utils/cache');
 const { asyncHandler } = require('./middleware/asyncHandler');
 const fs = require('fs').promises;
 const path = require('path');
+const Fuse = require('fuse.js');
 
 const router = express.Router();
 
@@ -111,5 +112,40 @@ router.delete(
         res.json({ message: 'Package deleted successfully' });
     })
 );
+
+router.get(
+    '/search-packages',
+    asyncHandler(async (req, res) => {
+        const { query } = req.query;
+        if (!query) {
+            return res.status(400).json({ error: 'Search query is required' });
+        }
+
+        const cacheKey = 'all-packages';
+        let packages = cache.get(cacheKey);
+
+        if (packages == undefined) {
+            packages = packageRepository.getAllPackages();
+            cache.set(cacheKey, packages);
+        }
+
+        const fuseOptions = {
+            keys: ['name', 'description', 'keywords'],
+            threshold: 0.4,
+            includeScore: true
+        };
+
+        const fuse = new Fuse(packages, fuseOptions);
+        const searchResults = fuse.search(query);
+
+        const sortedResults = searchResults
+            .sort((a, b) => a.score - b.score)
+            .map(result => result.item);
+
+        res.json(sortedResults);
+    })
+);
+
+module.exports = router;
 
 module.exports = router;

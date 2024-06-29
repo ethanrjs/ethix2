@@ -403,6 +403,51 @@ async function runPackageInitialization(packageName) {
     }
 }
 
+async function searchPackages(query) {
+    addOutputLine({
+        text: `Searching for packages matching "${query}"...`,
+        color: 'cyan'
+    });
+
+    try {
+        const response = await fetch(
+            `/api/search-packages?query=${encodeURIComponent(query)}`
+        );
+        if (!response.ok) {
+            throw new Error('Failed to fetch search results');
+        }
+        const searchResults = await response.json();
+
+        if (searchResults.length === 0) {
+            addOutputLine({
+                text: `No packages found matching "${query}".`,
+                color: 'yellow'
+            });
+            return;
+        }
+
+        addOutputLine({
+            text: `Found ${searchResults.length} package(s):`,
+            color: 'green'
+        });
+        searchResults.forEach(pkg => {
+            addOutputLine({
+                text: `${pkg.name}`,
+                color: 'white'
+            });
+            addOutputLine({
+                text: `  ${pkg.description}`,
+                color: 'gray'
+            });
+        });
+    } catch (error) {
+        addOutputLine({
+            text: `Error searching for packages: ${error.message}`,
+            color: 'red'
+        });
+    }
+}
+
 registerCommand('epm', 'ETHIX Package Manager', async args => {
     if (args.length === 0) {
         addOutputLine({
@@ -410,12 +455,12 @@ registerCommand('epm', 'ETHIX Package Manager', async args => {
             color: 'yellow'
         });
         addOutputLine({ text: 'Commands:', color: 'cyan' });
-        addOutputLine('  install <package>  - Install a package');
-        addOutputLine('  uninstall <package>  - Uninstall a package');
+        addOutputLine('  install (package)  - Install a package');
+        addOutputLine('  uninstall (package)  - Uninstall a package');
         addOutputLine('  list  - List installed packages');
-        addOutputLine('  create <package>  - Create a new package');
-        addOutputLine('  publish <package>  - Publish a package');
-        addOutputLine('  update <package>  - Update a package');
+        addOutputLine('  create (package)  - Create a new package');
+        addOutputLine('  publish (package)  - Publish a package');
+        addOutputLine('  update (package)  - Update a package');
         return;
     }
 
@@ -425,7 +470,7 @@ registerCommand('epm', 'ETHIX Package Manager', async args => {
         case 'install':
             if (options.length === 0) {
                 addOutputLine({
-                    text: 'Usage: epm install <package>',
+                    text: 'Usage: epm install (package)',
                     color: 'red'
                 });
             } else {
@@ -435,7 +480,7 @@ registerCommand('epm', 'ETHIX Package Manager', async args => {
         case 'uninstall':
             if (options.length === 0) {
                 addOutputLine({
-                    text: 'Usage: epm uninstall <package>',
+                    text: 'Usage: epm uninstall (package)',
                     color: 'red'
                 });
             } else {
@@ -448,7 +493,7 @@ registerCommand('epm', 'ETHIX Package Manager', async args => {
         case 'create':
             if (options.length === 0) {
                 addOutputLine({
-                    text: 'Usage: epm create <package>',
+                    text: 'Usage: epm create (package)',
                     color: 'red'
                 });
             } else {
@@ -458,7 +503,7 @@ registerCommand('epm', 'ETHIX Package Manager', async args => {
         case 'publish':
             if (options.length === 0) {
                 addOutputLine({
-                    text: 'Usage: epm publish <package>',
+                    text: 'Usage: epm publish (package)',
                     color: 'red'
                 });
             } else {
@@ -470,6 +515,16 @@ registerCommand('epm', 'ETHIX Package Manager', async args => {
                 await updateAllPackages();
             } else {
                 await updatePackage(options[0]);
+            }
+            break;
+        case 'search':
+            if (options.length === 0) {
+                addOutputLine({
+                    text: 'Usage: epm search (query)',
+                    color: 'red'
+                });
+            } else {
+                await searchPackages(options.join(' '));
             }
             break;
         default:
