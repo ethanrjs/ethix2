@@ -1,8 +1,4 @@
-import {
-    registerCommand,
-    addOutputLine,
-    getCurrentDirectory
-} from '../terminal.js';
+import { registerCommand, addOutputLine } from '../terminal.js';
 import {
     deleteItem,
     getDirectoryContents,

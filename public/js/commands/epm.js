@@ -4,7 +4,6 @@ import {
     getCurrentDirectory
 } from '../terminal.js';
 import {
-    fileSystem,
     createDirectory,
     createFile,
     saveFileSystem,
