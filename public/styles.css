@@ -22,7 +22,8 @@ html {
 
 #prompt {
     color: #00ff00;
-    margin-right: 10px;
+    margin-right: 2px;
+    padding: 0.25rem;
     white-space: nowrap;
 }
 
@@ -35,12 +36,19 @@ html {
     font-size: 16px;
     outline: none;
     min-width: 1px;
+    padding: 0.25rem;
 }
 
 .output-line {
-    margin-bottom: 10px;
     white-space: pre-wrap;
     word-break: keep-all;
+    width: fit-content;
+    padding: 0.25rem;
+}
+
+.output-line:hover {
+    background-color: #f0f0f02d;
+    cursor: default;
 }
 
 #cursor {
