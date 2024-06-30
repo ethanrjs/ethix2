@@ -397,6 +397,7 @@ async function runPackageInitialization(packageName) {
                     text: `Error initializing package ${packageName}: ${error.message}`,
                     color: 'red'
                 });
+                console.error(error);
             }
         }
     }
@@ -538,7 +539,27 @@ registerCommand('epm', 'ETHIX Package Manager', async args => {
     }
 });
 
+async function initializeAllPackages() {
+    const packagesDir = getDirectoryContents('/packages');
+    const packageNames = Object.keys(packagesDir);
+
+    if (packageNames.length === 0) {
+        console.log('No packages installed.');
+        return;
+    }
+
+    console.log('Initializing all installed packages...');
+
+    for (const packageName of packageNames) {
+        await runPackageInitialization(packageName);
+    }
+
+    console.log('All packages initialized.');
+}
+
 registerCommandDescription(
     'epm',
     'ETHIX Package Manager - Manage packages (install, uninstall, list, create, publish, update)'
 );
+
+initializeAllPackages();
