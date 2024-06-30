@@ -132,7 +132,6 @@ class FileSystem {
 
 const fileSystem = new FileSystem();
 
-// Export bound methods
 export const saveFileSystem = fileSystem.save.bind(fileSystem);
 export const getDirectoryContents =
     fileSystem.getDirectoryContents.bind(fileSystem);
@@ -144,5 +143,4 @@ export const deleteItem = fileSystem.deleteItem.bind(fileSystem);
 export const getFileSize = fileSystem.getFileSize.bind(fileSystem);
 export const resolvePath = fileSystem.resolvePath.bind(fileSystem);
 
-// Export the fileSystem instance
 export { fileSystem };

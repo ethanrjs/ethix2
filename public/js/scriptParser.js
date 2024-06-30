@@ -137,7 +137,7 @@ class ETXScriptParser {
                 ) {
                     output.push(operators.pop());
                 }
-                operators.pop(); // Remove the '('
+                operators.pop();
             } else if (token in precedence) {
                 while (
                     operators.length &&

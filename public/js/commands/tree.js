@@ -77,7 +77,6 @@ function tree(args) {
     let path = getCurrentDirectory();
     let maxDepth = Infinity;
 
-    // Parse arguments
     args.forEach((arg, index) => {
         if (arg === '-L' && args[index + 1]) {
             maxDepth = parseInt(args[index + 1], 10);
@@ -93,7 +92,6 @@ function tree(args) {
         }
     });
 
-    // Normalize path
     path = path.startsWith('/') ? path : `/${path}`;
     path = path.endsWith('/') ? path : `${path}/`;
 
@@ -112,7 +110,7 @@ function tree(args) {
 
     output.forEach(line => addOutputLine(line));
 
-    addOutputLine({ text: '', color: 'white' }); // Empty line for better readability
+    addOutputLine({ text: '', color: 'white' });
     addOutputLine({
         text: `${dirCount} director${
             dirCount === 1 ? 'y' : 'ies'
