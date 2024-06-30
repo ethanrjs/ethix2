@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
-
 :root {
     --bg-color: #000;
     --text-color: #fff;
@@ -32,6 +30,10 @@ html {
     box-sizing: border-box;
     scrollbar-width: thin;
     scrollbar-color: #333 var(--bg-color);
+}
+
+#terminal.with-explorer {
+    margin-right: 200px;
 }
 
 #terminal::-webkit-scrollbar {
@@ -94,44 +96,27 @@ html {
     transform: scaleX(1);
 }
 
-a {
-    color: var(--link-color);
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-.error {
-    color: var(--error-color);
-}
-
-.success {
-    color: var(--success-color);
-}
-
-#editor-container {
+#file-explorer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 200px;
     height: 100%;
-    display: flex;
-    flex-direction: column;
+    background-color: #1e1e1e;
+    border-left: 1px solid #333;
+    overflow-y: auto;
+    display: none;
 }
 
-#editor-header {
-    padding: 10px;
-    background-color: #111;
-    color: var(--text-color);
-    border-bottom: 1px solid #333;
+#file-explorer::-webkit-scrollbar {
+    width: 8px;
 }
 
-#editor-textarea {
-    flex-grow: 1;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    border: none;
-    padding: 10px;
-    font-family: inherit;
-    font-size: inherit;
-    resize: none;
-    outline: none;
+#file-explorer::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+#file-explorer::-webkit-scrollbar-thumb {
+    background-color: #333;
+    border-radius: 4px;
 }

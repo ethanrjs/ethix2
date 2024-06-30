@@ -2,6 +2,10 @@ import { fileSystem, saveFileSystem, getFileContents } from './fileSystem.js';
 import { terminalAPI } from './terminalAPI.js';
 import { scriptParser } from './scriptParser.js';
 import { resolvePath } from './fileSystem.js';
+import { ImprovedAutocomplete } from './ImprovedAutocomplete.js';
+import { CustomPrompt } from './CustomPrompt.js';
+import { FileExplorer } from './FileExplorer.js';
+import { AliasManager } from './AliasManager.js';
 
 const terminal = document.getElementById('terminal');
 const output = document.getElementById('output');
@@ -15,6 +19,12 @@ const state = {
     historyIndex: -1,
     isEditMode: false
 };
+
+const fileExplorerContainer = document.createElement('div');
+fileExplorerContainer.id = 'file-explorer';
+document.body.appendChild(fileExplorerContainer);
+
+const fileExplorer = new FileExplorer(fileSystem, fileExplorerContainer);
 
 const commands = {};
 
@@ -43,6 +53,12 @@ const STYLES = {
     underline: 'text-decoration: underline;',
     strikethrough: 'text-decoration: line-through;'
 };
+
+const customPrompt = new CustomPrompt(fileSystem);
+
+function updatePrompt() {
+    promptElement.textContent = customPrompt.getPrompt();
+}
 
 export function addOutputLine(segments, options = {}) {
     const line = document.createElement('div');
@@ -119,11 +135,6 @@ export function registerCommand(name, description, action) {
     commands[name] = { description, action };
 }
 
-function updatePrompt() {
-    promptElement.textContent = `${state.currentDirectory} $`;
-    promptElement.style.color = COLORS.green;
-}
-
 async function executeScript(scriptPath) {
     const fullPath = resolvePath(scriptPath);
     const scriptContent = getFileContents(fullPath);
@@ -145,20 +156,39 @@ async function executeScript(scriptPath) {
 }
 
 export async function processCommand(input, hidden = false) {
-    if (!hidden) addOutputLine({ text: input }, { isCommand: true });
-    const [cmd, ...args] = input.split(' ');
+    const expandedInput = aliasManager.expandCommand(input);
+
+    if (!hidden) {
+        addOutputLine({ text: input }, { isCommand: true });
+        if (expandedInput !== input) {
+            addOutputLine({
+                text: `Expanded to: ${expandedInput}`,
+                color: 'cyan'
+            });
+        }
+    }
+
+    const [cmd, ...args] = expandedInput.split(' ');
 
     if (
-        input.startsWith('./') ||
-        input.startsWith('/') ||
-        input.startsWith('../')
+        expandedInput.startsWith('./') ||
+        expandedInput.startsWith('/') ||
+        expandedInput.startsWith('../')
     ) {
-        await executeScript(input);
+        await executeScript(expandedInput);
     } else if (commands[cmd]) {
-        await commands[cmd].action(args);
+        try {
+            await commands[cmd].action(args);
+        } catch (error) {
+            addOutputLine({
+                text: `Error executing command: ${error.message}`,
+                color: 'red'
+            });
+        }
     } else {
         addOutputLine({ text: `Command not found: ${cmd}`, color: 'red' });
     }
+
     saveFileSystem();
 }
 
@@ -251,25 +281,17 @@ function handleArrowDownKey(e) {
     }
 }
 
+const autocomplete = new ImprovedAutocomplete(commands, fileSystem);
+
 function handleTabKey(e) {
     e.preventDefault();
-    autocomplete();
-}
-
-function autocomplete() {
     const input = inputElement.textContent.trim();
-    const [partialCmd, ...args] = input.split(' ');
-    const matches = Object.keys(commands).filter(cmd =>
-        cmd.startsWith(partialCmd)
-    );
-
-    if (matches.length === 1) {
-        inputElement.textContent =
-            matches[0] + (args.length ? ' ' + args.join(' ') : '');
-        moveCursorToEnd();
-    } else if (matches.length > 1) {
-        addOutputLine('Possible commands:');
-        matches.forEach(match => addOutputLine('  ' + match));
+    const suggestions = autocomplete.getSuggestions(input);
+    if (suggestions.length === 1) {
+        inputElement.textContent = input.replace(/\S+$/, suggestions[0]);
+    } else if (suggestions.length > 1) {
+        addOutputLine('Suggestions:');
+        suggestions.forEach(suggestion => addOutputLine(`  ${suggestion}`));
     }
 }
 
@@ -444,8 +466,31 @@ export function exitEditMode() {
     inputElement.focus();
 }
 
+function toggleExplorer() {
+    fileExplorer.toggle();
+    document.getElementById('terminal').classList.toggle('with-explorer');
+    addOutputLine({
+        text: `File explorer ${fileExplorer.isVisible ? 'shown' : 'hidden'}`,
+        color: 'cyan'
+    });
+}
+
+registerCommand('explorer', 'Toggle file explorer', toggleExplorer);
+
+registerCommand('alias', 'Set an alias', args => {
+    if (args.length < 2) {
+        addOutputLine('Usage: alias <name> <command>');
+    } else {
+        const [alias, ...command] = args;
+        aliasManager.setAlias(alias, command.join(' '));
+        addOutputLine(`Alias set: ${alias} => ${command.join(' ')}`);
+    }
+});
+
 inputElement.addEventListener('input', handleInput);
 inputElement.addEventListener('keydown', handleKeyDown);
+
+const aliasManager = new AliasManager();
 
 initializeTerminal();
 
