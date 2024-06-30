@@ -2,6 +2,7 @@ import { fileSystem, saveFileSystem, getFileContents } from './fileSystem.js';
 import { terminalAPI } from './terminalAPI.js';
 import { scriptParser } from './scriptParser.js';
 import { resolvePath } from './fileSystem.js';
+
 const terminal = document.getElementById('terminal');
 const output = document.getElementById('output');
 const inputLine = document.getElementById('input-line');
@@ -18,15 +19,22 @@ const state = {
 const commands = {};
 
 const COLORS = {
-    black: '#000000',
-    red: '#ff0000',
-    green: '#00ff00',
-    yellow: '#ffff00',
-    blue: '#0000ff',
-    magenta: '#ff00ff',
-    cyan: '#00ffff',
-    white: '#ffffff',
-    gray: '#808080'
+    black: '#282c34',
+    red: '#e06c75',
+    green: '#98c379',
+    yellow: '#e5c07b',
+    blue: '#61afef',
+    magenta: '#c678dd',
+    cyan: '#56b6c2',
+    white: '#abb2bf',
+    brightBlack: '#5c6370',
+    brightRed: '#e06c75',
+    brightGreen: '#98c379',
+    brightYellow: '#e5c07b',
+    brightBlue: '#61afef',
+    brightMagenta: '#c678dd',
+    brightCyan: '#56b6c2',
+    brightWhite: '#ffffff'
 };
 
 const STYLES = {
@@ -59,12 +67,12 @@ export function addOutputLine(segments, options = {}) {
 function createSegmentSpan(segment) {
     if (typeof segment === 'string') {
         const span = document.createElement('span');
-        span.innerHTML = segment;
+        span.textContent = segment;
         return span;
     } else if (typeof segment === 'object' && segment !== null) {
         const { text = '', color, backgroundColor, style } = segment;
         const span = document.createElement('span');
-        span.innerHTML = text;
+        span.textContent = text;
         applyStyles(span, color, backgroundColor, style);
         return span;
     }
@@ -104,7 +112,7 @@ function appendLineToOutput(line, isAscii) {
 }
 
 function scrollToBottom() {
-    if (terminal) terminal.scrollTop = terminal.scrollHeight;
+    terminal.scrollTop = terminal.scrollHeight;
 }
 
 export function registerCommand(name, description, action) {
@@ -113,6 +121,7 @@ export function registerCommand(name, description, action) {
 
 function updatePrompt() {
     promptElement.textContent = `${state.currentDirectory} $`;
+    promptElement.style.color = COLORS.green;
 }
 
 async function executeScript(scriptPath) {
@@ -270,7 +279,7 @@ async function loadCommandModules() {
             text: '\nloading command modules... ',
             color: 'yellow'
         },
-        { text: `[${getTimestamp()}]`, color: 'gray' }
+        { text: `[${getTimestamp()}]`, color: 'brightBlack' }
     ]);
 
     try {
@@ -313,13 +322,13 @@ function displayLoadResults(results) {
         if (success) {
             addOutputLine([
                 { text: `  ✓ ${module}`, color: 'green' },
-                { text: ` (${loadTime}ms)`, color: 'gray' },
-                { text: ` [${getTimestamp()}]`, color: 'gray' }
+                { text: ` (${loadTime}ms)`, color: 'brightBlack' },
+                { text: ` [${getTimestamp()}]`, color: 'brightBlack' }
             ]);
         } else {
             addOutputLine([
                 { text: `  ✗ ${module}`, color: 'red' },
-                { text: ` [${getTimestamp()}]`, color: 'gray' }
+                { text: ` [${getTimestamp()}]`, color: 'brightBlack' }
             ]);
             addOutputLine(`    Error: ${error}`, {
                 color: 'red',
@@ -338,7 +347,7 @@ function displayLoadResults(results) {
             text: `${failCount} failed. `,
             color: failCount > 0 ? 'red' : 'green'
         },
-        { text: `[${getTimestamp()}]`, color: 'gray' }
+        { text: `[${getTimestamp()}]`, color: 'brightBlack' }
     ]);
 }
 
@@ -349,7 +358,7 @@ function displayLoadError(error) {
             color: 'red',
             style: 'bold'
         },
-        { text: `[${getTimestamp()}]`, color: 'gray' }
+        { text: `[${getTimestamp()}]`, color: 'brightBlack' }
     ]);
     addOutputLine(`  ${error.message}`, { color: 'red' });
 }
@@ -399,7 +408,7 @@ function createEditorContainer(fileName) {
 function createEditorHeader(fileName) {
     const header = document.createElement('div');
     header.textContent = `Editing: ${fileName} (Press Ctrl+S to save, Ctrl+Q to quit)`;
-    header.style.cssText = 'padding: 5px; background-color: #333; color: #fff;';
+    header.style.cssText = `padding: 5px; background-color: ${COLORS.black}; color: ${COLORS.white};`;
     return header;
 }
 
@@ -407,7 +416,7 @@ function createEditorTextarea(initialContent) {
     const textarea = document.createElement('textarea');
     textarea.value = initialContent;
     textarea.style.cssText = `
-        flex-grow: 1; width: 100%; background-color: #1e1e1e; color: #f0f0f0;
+        flex-grow: 1; width: 100%; background-color: ${COLORS.black}; color: ${COLORS.white};
         border: none; padding: 10px; font-size: 16px; resize: none; outline: none;
         font-family: 'IBM Plex Mono', monospace;
     `;

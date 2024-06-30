@@ -1,70 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
+
+:root {
+    --bg-color: #000;
+    --text-color: #fff;
+    --prompt-color: #50E3C2;
+    --input-color: #fff;
+    --output-color: #888;
+    --link-color: #0070f3;
+    --error-color: #ff0000;
+    --success-color: #50E3C2;
+    --font-mono: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
 body,
 html {
     margin: 0;
     padding: 0;
+    font-family: var(--font-mono);
+    background-color: var(--bg-color);
+    color: var(--text-color);
     height: 100%;
-    background-color: #1e1e1e;
-    color: #f0f0f0;
-    font-family: 'IBM Plex Mono', monospace;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
 #terminal {
-    height: 100%;
+    height: 100vh;
     overflow-y: auto;
     padding: 20px;
     box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: #333 var(--bg-color);
+}
+
+#terminal::-webkit-scrollbar {
+    width: 8px;
+}
+
+#terminal::-webkit-scrollbar-track {
+    background: var(--bg-color);
+}
+
+#terminal::-webkit-scrollbar-thumb {
+    background-color: #333;
+    border-radius: 4px;
+}
+
+#output {
+    margin-bottom: 20px;
+}
+
+.output-line {
+    margin-bottom: 8px;
+    color: var(--output-color);
 }
 
 #input-line {
     display: flex;
     align-items: center;
+    margin-top: 10px;
 }
 
 #prompt {
-    color: #00ff00;
-    margin-right: 2px;
-    padding: 0.25rem;
-    white-space: nowrap;
+    color: var(--prompt-color);
+    margin-right: 8px;
+    font-weight: bold;
 }
 
 #input {
     flex-grow: 1;
-    background: none;
+    background: transparent;
     border: none;
-    color: #f0f0f0;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 16px;
+    color: var(--input-color);
+    font-family: inherit;
+    font-size: inherit;
     outline: none;
-    min-width: 1px;
-    padding: 0.25rem;
 }
 
-.output-line {
-    white-space: pre-wrap;
-    word-break: keep-all;
-    width: fit-content;
-    padding: 0.25rem;
+#input::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 2px;
+    background-color: var(--prompt-color);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
 }
 
-.output-line:hover {
-    background-color: #f0f0f02d;
-    cursor: default;
+#input:focus::before {
+    transform: scaleX(1);
 }
 
-#cursor {
-    display: none;
+a {
+    color: var(--link-color);
+    text-decoration: none;
 }
 
-@media only screen and (max-width: 600px) {
-    #input {
-        font-size: 12px;
-    }
+a:hover {
+    text-decoration: underline;
+}
 
-    #prompt {
-        font-size: 12px;
-    }
+.error {
+    color: var(--error-color);
+}
 
-    .output-line {
-        font-size: 12px;
-    }
+.success {
+    color: var(--success-color);
+}
+
+#editor-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#editor-header {
+    padding: 10px;
+    background-color: #111;
+    color: var(--text-color);
+    border-bottom: 1px solid #333;
+}
+
+#editor-textarea {
+    flex-grow: 1;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: none;
+    padding: 10px;
+    font-family: inherit;
+    font-size: inherit;
+    resize: none;
+    outline: none;
 }
