@@ -24,7 +24,25 @@ const fileExplorerContainer = document.createElement('div');
 fileExplorerContainer.id = 'file-explorer';
 document.body.appendChild(fileExplorerContainer);
 
-const fileExplorer = new FileExplorer(fileSystem, fileExplorerContainer);
+function handleFileEdit(filePath) {
+    processCommand(`edit ${filePath}`);
+    console.log(`Typed edit ${filePath}`);
+}
+
+const fileExplorer = new FileExplorer(
+    fileSystem,
+    fileExplorerContainer,
+    handleFileEdit
+);
+
+function toggleExplorer() {
+    fileExplorer.toggle();
+    document.getElementById('terminal').classList.toggle('with-explorer');
+    addOutputLine({
+        text: `File explorer ${fileExplorer.isVisible ? 'shown' : 'hidden'}`,
+        color: 'cyan'
+    });
+}
 
 const commands = {};
 
@@ -466,17 +484,6 @@ export function exitEditMode() {
     inputElement.focus();
 }
 
-function toggleExplorer() {
-    fileExplorer.toggle();
-    document.getElementById('terminal').classList.toggle('with-explorer');
-    addOutputLine({
-        text: `File explorer ${fileExplorer.isVisible ? 'shown' : 'hidden'}`,
-        color: 'cyan'
-    });
-}
-
-registerCommand('explorer', 'Toggle file explorer', toggleExplorer);
-
 registerCommand('alias', 'Set an alias', args => {
     if (args.length < 2) {
         addOutputLine('Usage: alias <name> <command>');
@@ -491,6 +498,8 @@ inputElement.addEventListener('input', handleInput);
 inputElement.addEventListener('keydown', handleKeyDown);
 
 const aliasManager = new AliasManager();
+
+registerCommand('explorer', 'Toggle file explorer', toggleExplorer);
 
 initializeTerminal();
 

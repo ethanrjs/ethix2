@@ -1,9 +1,10 @@
 export class FileExplorer {
-    constructor(fileSystem, container) {
+    constructor(fileSystem, container, editCallback) {
         this.fileSystem = fileSystem;
         this.container = container;
         this.currentPath = '/';
         this.isVisible = false;
+        this.editCallback = editCallback;
         this.init();
     }
 
@@ -39,7 +40,7 @@ export class FileExplorer {
 
         Object.entries(contents).forEach(([name, item]) => {
             const element = this.createItem(name, item.type, () =>
-                this.navigate(name)
+                this.handleItemClick(name, item.type)
             );
             this.container.appendChild(element);
         });
@@ -66,6 +67,17 @@ export class FileExplorer {
         };
         element.onclick = onClick;
         return element;
+    }
+
+    handleItemClick(name, type) {
+        if (type === 'directory') {
+            this.navigate(name);
+        } else {
+            const filePath = this.fileSystem.resolvePath(
+                `${this.currentPath}/${name}`
+            );
+            this.editCallback(filePath);
+        }
     }
 
     navigate(name) {
