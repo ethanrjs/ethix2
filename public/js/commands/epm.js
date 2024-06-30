@@ -358,7 +358,6 @@ async function runPackageInitialization(packageName) {
         const mainFile = packageInfo.main || 'index.js';
         const mainFilePath = `${packagePath}/${mainFile}`;
         const mainFileContent = getFileContents(mainFilePath);
-
         if (mainFileContent) {
             try {
                 const executePkg = new Function(
