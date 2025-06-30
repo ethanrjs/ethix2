@@ -610,3 +610,4 @@ class ImprovedETXScriptParser {
 }
 
 export const improvedScriptParser = new ImprovedETXScriptParser();
+export { ImprovedETXScriptParser };

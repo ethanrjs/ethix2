@@ -18,7 +18,9 @@ class FileSystem {
 
     ensureSampleScript() {
         const samplePath = '/sample.etx';
-        if (!this.getFileContents(samplePath)) {
+        // Check if file exists without using getCurrentDirectory to avoid circular dependency
+        const file = this.traversePath(samplePath);
+        if (!file || file.type !== 'file') {
             const sampleContent = `# Enhanced ETX Script - Demonstrates all parser features
 # This comprehensive example shows the improved ETX parser capabilities
 
@@ -204,7 +206,13 @@ unset numbers`;
     }
 
     resolvePath(path) {
-        const currentDir = getCurrentDirectory();
+        // Avoid circular dependency by using '/' as default if getCurrentDirectory is not available
+        let currentDir;
+        try {
+            currentDir = getCurrentDirectory();
+        } catch (error) {
+            currentDir = '/';
+        }
         const segments = (path.startsWith('/') ? path : `${currentDir}/${path}`)
             .split('/')
             .filter(Boolean);

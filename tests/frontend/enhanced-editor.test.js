@@ -105,7 +105,7 @@ describe('EnhancedEditor', () => {
             editor.updateSyntaxHighlighting();
 
             const overlay = editor.syntaxOverlay;
-            expect(overlay.innerHTML).toContain('syntax-comment');
+            expect(overlay.innerHTML).toContain('<span class="syntax-comment">');
         });
 
         test('should highlight keywords correctly', () => {
@@ -114,7 +114,7 @@ describe('EnhancedEditor', () => {
             editor.updateSyntaxHighlighting();
 
             const overlay = editor.syntaxOverlay;
-            expect(overlay.innerHTML).toContain('syntax-keyword');
+            expect(overlay.innerHTML).toContain('<span class="syntax-keyword">if</span>');
         });
 
         test('should highlight variables correctly', () => {
@@ -123,7 +123,7 @@ describe('EnhancedEditor', () => {
             editor.updateSyntaxHighlighting();
 
             const overlay = editor.syntaxOverlay;
-            expect(overlay.innerHTML).toContain('syntax-variable');
+            expect(overlay.innerHTML).toContain('<span class="syntax-variable">$myvar</span>');
         });
 
         test('should highlight array variables correctly', () => {
@@ -132,7 +132,7 @@ describe('EnhancedEditor', () => {
             editor.updateSyntaxHighlighting();
 
             const overlay = editor.syntaxOverlay;
-            expect(overlay.innerHTML).toContain('syntax-variable');
+            expect(overlay.innerHTML).toContain('<span class="syntax-variable">$arr[0]</span>');
         });
 
         test('should highlight strings correctly', () => {
@@ -141,7 +141,7 @@ describe('EnhancedEditor', () => {
             editor.updateSyntaxHighlighting();
 
             const overlay = editor.syntaxOverlay;
-            expect(overlay.innerHTML).toContain('syntax-string');
+            expect(overlay.innerHTML).toContain('<span class="syntax-string">"hello world"</span>');
         });
 
         test('should highlight numbers correctly', () => {
@@ -150,7 +150,7 @@ describe('EnhancedEditor', () => {
             editor.updateSyntaxHighlighting();
 
             const overlay = editor.syntaxOverlay;
-            expect(overlay.innerHTML).toContain('syntax-number');
+            expect(overlay.innerHTML).toContain('<span class="syntax-number">42</span>');
         });
 
         test('should highlight boolean values correctly', () => {
@@ -159,7 +159,7 @@ describe('EnhancedEditor', () => {
             editor.updateSyntaxHighlighting();
 
             const overlay = editor.syntaxOverlay;
-            expect(overlay.innerHTML).toContain('syntax-boolean');
+            expect(overlay.innerHTML).toContain('<span class="syntax-boolean">true</span>');
         });
 
         test('should highlight operators correctly', () => {
@@ -186,7 +186,7 @@ describe('EnhancedEditor', () => {
             editor.updateSyntaxHighlighting();
 
             const overlay = editor.syntaxOverlay;
-            expect(overlay.innerHTML).toContain('syntax-function-call');
+            expect(overlay.innerHTML).toContain('<span class="syntax-function-call">myFunction</span>');
         });
 
         test('should not highlight non-ETX files', () => {

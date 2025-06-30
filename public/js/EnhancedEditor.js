@@ -125,21 +125,110 @@ class EnhancedEditor {
             return;
         }
 
-        let highlightedContent = this.escapeHtml(this.editor.value);
+        const content = this.editor.value;
+        const lines = content.split('\n');
+        const highlightedLines = lines.map(line => this.highlightLine(line));
         
-        // Apply syntax highlighting patterns in order
-        this.etxPatterns.forEach(({ pattern, className }) => {
-            highlightedContent = highlightedContent.replace(pattern, (match) => 
-                `<span class="syntax-${className}">${match}</span>`
-            );
-        });
+        this.syntaxOverlay.innerHTML = highlightedLines.join('\n') + ' ';
+    }
 
-        // Add a space at the end to ensure proper cursor positioning
-        if (!highlightedContent.endsWith(' ')) {
-            highlightedContent += ' ';
+    highlightLine(line) {
+        if (!line.trim()) return '';
+        
+        // Handle comments first (entire line)
+        if (line.trim().startsWith('#')) {
+            return `<span class="syntax-comment">${this.escapeHtml(line)}</span>`;
         }
         
-        this.syntaxOverlay.innerHTML = highlightedContent;
+        let result = '';
+        let i = 0;
+        
+        while (i < line.length) {
+            let matched = false;
+            
+            // Try to match patterns at current position
+            const remaining = line.slice(i);
+            
+            // String literals
+            const stringMatch = remaining.match(/^(['"])((?:\\.|(?!\1)[^\\])*?)\1/);
+            if (stringMatch) {
+                result += `<span class="syntax-string">${this.escapeHtml(stringMatch[0])}</span>`;
+                i += stringMatch[0].length;
+                matched = true;
+            }
+            
+            // Variables
+            else if (remaining.match(/^\$\w+(?:\[[^\]]*\])?/)) {
+                const varMatch = remaining.match(/^\$\w+(?:\[[^\]]*\])?/)[0];
+                result += `<span class="syntax-variable">${this.escapeHtml(varMatch)}</span>`;
+                i += varMatch.length;
+                matched = true;
+            }
+            
+            // Numbers
+            else if (remaining.match(/^\b\d+\.?\d*\b/)) {
+                const numMatch = remaining.match(/^\b\d+\.?\d*\b/)[0];
+                result += `<span class="syntax-number">${this.escapeHtml(numMatch)}</span>`;
+                i += numMatch.length;
+                matched = true;
+            }
+            
+            // Keywords
+            else if (remaining.match(/^\b(if|elif|else|endif|while|endwhile|for|endfor|function|endfunction|try|catch|endtry|return|break|continue|set|unset|import)\b/)) {
+                const keywordMatch = remaining.match(/^\b(if|elif|else|endif|while|endwhile|for|endfor|function|endfunction|try|catch|endtry|return|break|continue|set|unset|import)\b/)[0];
+                result += `<span class="syntax-keyword">${this.escapeHtml(keywordMatch)}</span>`;
+                i += keywordMatch.length;
+                matched = true;
+            }
+            
+            // Commands
+            else if (remaining.match(/^\b(echo|ls|cd|cat|mkdir|rm|cp|mv|touch|grep|find|chmod|chown|ps|kill|curl|wget)\b/)) {
+                const cmdMatch = remaining.match(/^\b(echo|ls|cd|cat|mkdir|rm|cp|mv|touch|grep|find|chmod|chown|ps|kill|curl|wget)\b/)[0];
+                result += `<span class="syntax-command">${this.escapeHtml(cmdMatch)}</span>`;
+                i += cmdMatch.length;
+                matched = true;
+            }
+            
+            // Booleans
+            else if (remaining.match(/^\b(true|false|null)\b/)) {
+                const boolMatch = remaining.match(/^\b(true|false|null)\b/)[0];
+                result += `<span class="syntax-boolean">${this.escapeHtml(boolMatch)}</span>`;
+                i += boolMatch.length;
+                matched = true;
+            }
+            
+            // Function calls
+            else if (remaining.match(/^\w+\s*(?=\()/)) {
+                const funcMatch = remaining.match(/^\w+/)[0];
+                result += `<span class="syntax-function-call">${this.escapeHtml(funcMatch)}</span>`;
+                i += funcMatch.length;
+                matched = true;
+            }
+            
+            // Operators
+            else if (remaining.match(/^(<=|>=|==|!=|&&|\|\||[<>=!+\-*/%])/)) {
+                const opMatch = remaining.match(/^(<=|>=|==|!=|&&|\|\||[<>=!+\-*/%])/)[0];
+                result += `<span class="syntax-operator">${this.escapeHtml(opMatch)}</span>`;
+                i += opMatch.length;
+                matched = true;
+            }
+            
+            // Brackets
+            else if (remaining.match(/^[{}()\[\]]/)) {
+                const bracketMatch = remaining.match(/^[{}()\[\]]/)[0];
+                result += `<span class="syntax-bracket">${this.escapeHtml(bracketMatch)}</span>`;
+                i += bracketMatch.length;
+                matched = true;
+            }
+            
+            // Default: add character as-is
+            if (!matched) {
+                result += this.escapeHtml(line[i]);
+                i++;
+            }
+        }
+        
+        return result;
     }
 
     updateStatusInfo() {
@@ -170,9 +259,12 @@ class EnhancedEditor {
     }
 
     escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#x27;');
     }
 
     setupEventListeners() {
