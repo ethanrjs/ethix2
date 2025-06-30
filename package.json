@@ -1,24 +1,62 @@
 {
-    "name": "ethix",
-    "version": "1.0.0",
-    "main": "app.js",
-    "scripts": {
-        "start": "node app.js",
-        "dev": "nodemon"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "description": "",
-    "dependencies": {
-        "express": "^4.19.2",
-        "express-rate-limit": "^7.3.1",
-        "fuse.js": "^7.0.0",
-        "node-cache": "^5.1.2",
-        "semver": "^7.6.2",
-        "winston": "^3.13.0"
-    },
-    "devDependencies": {
-        "nodemon": "^3.1.4"
-    }
+  "name": "ethix",
+  "version": "1.0.0",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "start": "bun run app.js",
+    "dev": "bun --watch app.js",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage",
+    "test:ui": "bun test --reporter=html",
+    "test:all": "bun run scripts/test-runner.js",
+    "test:all:coverage": "bun run scripts/test-runner.js --coverage",
+    "test:unit": "bun test tests/unit/",
+    "test:integration": "bun test tests/integration/",
+    "test:e2e": "bun test tests/e2e/",
+    "test:frontend": "bun test tests/frontend/",
+    "test:performance": "bun test tests/performance/",
+            "lint": "eslint . --ext .js,.mjs --config .eslintrc.cjs",
+        "lint:fix": "eslint . --ext .js,.mjs --config .eslintrc.cjs --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build": "bun build app.js --outdir ./dist --target node",
+    "clean": "rm -rf dist coverage .nyc_output test-reports test-temp"
+  },
+  "keywords": [
+    "package-manager",
+    "terminal",
+    "web-interface"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "A web-based package manager with terminal interface",
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "fuse.js": "^7.0.0",
+    "node-cache": "^5.1.2",
+    "semver": "^7.6.2",
+    "winston": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "@types/semver": "^7.5.6",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-node": "^11.1.0",
+    "prettier": "^3.1.1",
+    "supertest": "^6.3.3",
+    "happy-dom": "^12.10.3",
+    "msw": "^2.0.11"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "trustedDependencies": [
+    "@types/bun"
+  ]
 }

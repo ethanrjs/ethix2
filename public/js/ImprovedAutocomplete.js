@@ -16,9 +16,7 @@ export class ImprovedAutocomplete {
     }
 
     getCommandSuggestions(partial) {
-        return Object.keys(this.commands).filter(cmd =>
-            cmd.startsWith(partial)
-        );
+        return Object.keys(this.commands).filter(cmd => cmd.startsWith(partial));
     }
 
     getPathSuggestions(partial) {

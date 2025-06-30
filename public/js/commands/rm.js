@@ -1,9 +1,5 @@
 import { registerCommand, addOutputLine } from '../terminal.js';
-import {
-    deleteItem,
-    getDirectoryContents,
-    resolvePath
-} from '../fileSystem.js';
+import { deleteItem, getDirectoryContents, resolvePath } from '../fileSystem.js';
 import { registerCommandDescription } from './help.js';
 
 function removeRecursive(path) {

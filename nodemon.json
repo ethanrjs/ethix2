@@ -1,11 +1,6 @@
 {
-    "watch": [
-        "app.js",
-        "package-repository.js",
-        "public/**/*",
-        "!public/packages/**"
-    ],
-    "ignore": ["packages/**"],
-    "ext": "js,json,html,css",
-    "exec": "node app.js"
+  "watch": ["app.js", "package-repository.js", "public/**/*", "!public/packages/**"],
+  "ignore": ["packages/**"],
+  "ext": "js,json,html,css",
+  "exec": "node app.js"
 }

@@ -1,0 +1,36 @@
+[install]
+# Automatically install peer dependencies
+auto = true
+
+# Use exact versions for reproducible builds
+exact = false
+
+# Cache directory
+cache = ".bun-cache"
+
+# Registry configuration
+registry = "https://registry.npmjs.org/"
+
+[test]
+# Test runner configuration
+preload = ["./tests/setup.test.js"]
+timeout = 30000
+
+[build]
+# Build configuration
+outdir = "dist"
+target = "node"
+splitting = false
+minify = false
+sourcemap = "external"
+
+[run]
+# Runtime configuration
+silent = false
+shell = "system"
+
+[dev]
+# Development server configuration
+port = 3000
+hot = true
+watch = true

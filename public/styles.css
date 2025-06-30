@@ -1,12 +1,12 @@
 :root {
     --bg-color: #000;
     --text-color: #fff;
-    --prompt-color: #50E3C2;
+    --prompt-color: #50e3c2;
     --input-color: #fff;
     --output-color: #888;
     --link-color: #0070f3;
     --error-color: #ff0000;
-    --success-color: #50E3C2;
+    --success-color: #50e3c2;
     --font-mono: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 

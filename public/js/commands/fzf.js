@@ -62,9 +62,7 @@ function searchFiles(searchTerm, searchContent = false, currentPath = '/') {
                     contentMatches: []
                 });
             }
-            results.push(
-                ...searchFiles(searchTerm, searchContent, `${fullPath}/`)
-            );
+            results.push(...searchFiles(searchTerm, searchContent, `${fullPath}/`));
         } else if (item.type === 'file') {
             let contentMatches = [];
 
@@ -117,23 +115,19 @@ function renderResults(results, searchTerm, limit = 10) {
         line +=
             colorize(
                 highlightMatches(result.name, searchTerm),
-                result.type === 'directory'
-                    ? COLORS.directoryName
-                    : COLORS.fileName
+                result.type === 'directory' ? COLORS.directoryName : COLORS.fileName
             ) + ' ';
         line += colorize(result.path, COLORS.filePath);
         addOutputLine(line);
 
         if (result.type === 'file') {
-            result.contentMatches.forEach(
-                ({ line: lineNumber, content, score }) => {
-                    const contentLine = `  ${lineNumber}]: ${highlightMatches(
-                        content.trim(),
-                        searchTerm
-                    )}`;
-                    addOutputLine(colorize(contentLine, COLORS.contentMatch));
-                }
-            );
+            result.contentMatches.forEach(({ line: lineNumber, content, score }) => {
+                const contentLine = `  ${lineNumber}]: ${highlightMatches(
+                    content.trim(),
+                    searchTerm
+                )}`;
+                addOutputLine(colorize(contentLine, COLORS.contentMatch));
+            });
         }
     });
 
@@ -159,17 +153,11 @@ function fzf(args) {
         color: 'cyan'
     });
 
-    const totalMatches = results.reduce(
-        (sum, result) => sum + result.contentMatches.length,
-        0
-    );
+    const totalMatches = results.reduce((sum, result) => sum + result.contentMatches.length, 0);
     addOutputLine({
         text: `Total matching lines: ${totalMatches}`,
         color: 'cyan'
     });
 }
 registerCommand('fzf', 'Fuzzy find files and content', fzf);
-registerCommandDescription(
-    'fzf',
-    'Fuzzy find files and content. Use -c to search file contents.'
-);
+registerCommandDescription('fzf', 'Fuzzy find files and content. Use -c to search file contents.');
