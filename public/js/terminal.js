@@ -1,6 +1,6 @@
 import { fileSystem, saveFileSystem, getFileContents } from './fileSystem.js';
 import { terminalAPI } from './terminalAPI.js';
-import { scriptParser } from './scriptParser.js';
+import { improvedScriptParser } from './ImprovedScriptParser.js';
 import { resolvePath } from './fileSystem.js';
 import { ImprovedAutocomplete } from './ImprovedAutocomplete.js';
 import { CustomPrompt } from './CustomPrompt.js';
@@ -162,11 +162,18 @@ async function executeScript(scriptPath) {
     }
 
     addOutputLine({ text: `Executing script: ${scriptPath}`, color: 'cyan' });
-    await scriptParser.executeScript(scriptContent);
-    addOutputLine({
-        text: `Script execution completed: ${scriptPath}`,
-        color: 'cyan'
-    });
+    const result = await improvedScriptParser.executeScript(scriptContent);
+    if (result.success) {
+        addOutputLine({
+            text: `Script execution completed: ${scriptPath}`,
+            color: 'green'
+        });
+    } else {
+        addOutputLine({
+            text: `Script execution failed: ${result.error}`,
+            color: 'red'
+        });
+    }
 }
 
 export async function processCommand(input, hidden = false) {

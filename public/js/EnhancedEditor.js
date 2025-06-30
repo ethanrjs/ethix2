@@ -11,13 +11,15 @@ class EnhancedEditor {
         // ETX Script syntax highlighting patterns
         this.etxPatterns = [
             { pattern: /^#.*$/gm, className: 'comment' },
-            { pattern: /\b(if|else|endif|for|endfor|set)\b/g, className: 'keyword' },
-            { pattern: /\b(echo|ls|cd|cat|mkdir|rm|cp|mv|touch|grep|find)\b/g, className: 'command' },
-            { pattern: /\$\w+/g, className: 'variable' },
-            { pattern: /\b\d+\b/g, className: 'number' },
+            { pattern: /\b(if|elif|else|endif|while|endwhile|for|endfor|function|endfunction|try|catch|endtry|return|break|continue|set|unset|import)\b/g, className: 'keyword' },
+            { pattern: /\b(echo|ls|cd|cat|mkdir|rm|cp|mv|touch|grep|find|chmod|chown|ps|kill|curl|wget)\b/g, className: 'command' },
+            { pattern: /\$\w+(?:\[[^\]]+\])?/g, className: 'variable' },
+            { pattern: /\b\d+\.?\d*\b/g, className: 'number' },
+            { pattern: /\b(true|false|null)\b/g, className: 'boolean' },
             { pattern: /(['"])((?:\\.|(?!\1)[^\\])*?)\1/g, className: 'string' },
-            { pattern: /[<>=!]=?|[+\-*/]|\b(and|or|not)\b/g, className: 'operator' },
-            { pattern: /[{}()\[\]]/g, className: 'bracket' }
+            { pattern: /[<>=!]=?|[+\-*/%]|&&|\|\||!|\b(and|or|not)\b/g, className: 'operator' },
+            { pattern: /[{}()\[\]]/g, className: 'bracket' },
+            { pattern: /\w+\s*\(/g, className: 'function-call' }
         ];
     }
 

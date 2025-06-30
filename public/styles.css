@@ -318,3 +318,13 @@ html {
 .syntax-bracket {
     color: #ffd700;
 }
+
+.syntax-boolean {
+    color: #569cd6;
+    font-weight: bold;
+}
+
+.syntax-function-call {
+    color: #dcdcaa;
+    font-weight: bold;
+}
