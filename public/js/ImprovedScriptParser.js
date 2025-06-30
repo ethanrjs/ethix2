@@ -1,5 +1,6 @@
 import { addOutputLine, processCommand } from './terminal.js';
 import { getFileContents, saveFile, createFile } from './fileSystem.js';
+import { scriptLogger } from './ScriptLogger.js';
 
 class ImprovedETXScriptParser {
     constructor() {
@@ -34,26 +35,37 @@ class ImprovedETXScriptParser {
     }
 
     // Main script execution
-    async executeScript(scriptContent, context = {}) {
+    async executeScript(scriptContent, context = {}, scriptPath = 'inline') {
+        scriptLogger.startScript(scriptPath, scriptContent);
+        
         try {
             // Set context variables
             Object.assign(this.variables, context);
+            scriptLogger.logParserState(this);
             
             const lines = scriptContent.split('\n');
             await this.executeLines(lines, 0, lines.length - 1);
             
-            return {
+            const result = {
                 success: true,
                 variables: { ...this.variables },
                 returnValue: this.returnValue
             };
+            
+            scriptLogger.endScript(scriptPath, true, result);
+            return result;
         } catch (error) {
+            scriptLogger.logError(error, { scriptPath, context });
             this.handleError(`Script execution failed: ${error.message}`, error);
-            return {
+            
+            const result = {
                 success: false,
                 error: error.message,
                 variables: { ...this.variables }
             };
+            
+            scriptLogger.endScript(scriptPath, false, result);
+            return result;
         }
     }
 
@@ -66,6 +78,8 @@ class ImprovedETXScriptParser {
 
             const line = lines[i].trim();
             if (line && !line.startsWith('#')) {
+                scriptLogger.logLine(i + 1, line);
+                
                 if (this.debugMode) {
                     addOutputLine({ text: `[DEBUG] Line ${i + 1}: ${line}`, color: 'cyan' });
                 }
@@ -73,6 +87,7 @@ class ImprovedETXScriptParser {
                 try {
                     i = await this.executeLine(line, i, lines);
                 } catch (error) {
+                    scriptLogger.logError(error, { line: i + 1, content: line });
                     this.handleError(`Error on line ${i + 1}: ${error.message}`, error);
                     throw error;
                 }
@@ -318,14 +333,19 @@ class ImprovedETXScriptParser {
     // Import another script
     async executeImport(line) {
         const filePath = this.replaceVariables(line.slice(7).trim());
+        scriptLogger.logImport(filePath, false);
+        
         const scriptContent = getFileContents(filePath);
         
         if (scriptContent === null) {
+            scriptLogger.logImport(filePath, false);
             throw new Error(`Cannot import file: ${filePath}`);
         }
         
+        scriptLogger.logImport(filePath, true);
+        
         // Execute imported script in current context
-        await this.executeScript(scriptContent, this.variables);
+        await this.executeScript(scriptContent, this.variables, filePath);
     }
 
     // Enhanced set command with expressions and arrays
@@ -334,6 +354,7 @@ class ImprovedETXScriptParser {
         if (match) {
             const [, variable, index, value] = match;
             const evaluatedValue = this.evaluateExpression(value);
+            const oldValue = this.variables[variable];
             
             if (index !== undefined) {
                 // Array assignment
@@ -342,8 +363,10 @@ class ImprovedETXScriptParser {
                 }
                 const arrayIndex = this.evaluateExpression(index);
                 this.variables[variable][arrayIndex] = evaluatedValue;
+                scriptLogger.logVariable('set', `${variable}[${arrayIndex}]`, evaluatedValue, oldValue);
             } else {
                 this.variables[variable] = evaluatedValue;
+                scriptLogger.logVariable('set', variable, evaluatedValue, oldValue);
             }
         }
     }
@@ -405,19 +428,20 @@ class ImprovedETXScriptParser {
 
     // Enhanced custom evaluation with more operators
     customEval(expression) {
-        const tokens = expression.match(/(\d+\.?\d*|\w+|"[^"]*"|'[^']*'|\+|\-|\*|\/|%|\(|\)|<=|>=|==|!=|<|>|&&|\|\||!|\?|:)/g) || [];
-        const output = [];
-        const operators = [];
-        const precedence = {
-            '?': 1, ':': 1,
-            '||': 2,
-            '&&': 3,
-            '==': 4, '!=': 4,
-            '<': 5, '>': 5, '<=': 5, '>=': 5,
-            '+': 6, '-': 6,
-            '*': 7, '/': 7, '%': 7,
-            '!': 8
-        };
+        try {
+            const tokens = expression.match(/(\d+\.?\d*|\w+|"[^"]*"|'[^']*'|\+|\-|\*|\/|%|\(|\)|<=|>=|==|!=|<|>|&&|\|\||!|\?|:)/g) || [];
+            const output = [];
+            const operators = [];
+            const precedence = {
+                '?': 1, ':': 1,
+                '||': 2,
+                '&&': 3,
+                '==': 4, '!=': 4,
+                '<': 5, '>': 5, '<=': 5, '>=': 5,
+                '+': 6, '-': 6,
+                '*': 7, '/': 7, '%': 7,
+                '!': 8
+            };
 
         for (const token of tokens) {
             if (!isNaN(token)) {
@@ -451,7 +475,11 @@ class ImprovedETXScriptParser {
             output.push(operators.pop());
         }
 
-        return this.evaluatePostfix(output);
+            return this.evaluatePostfix(output);
+        } catch (error) {
+            scriptLogger.logError(error, { expression });
+            throw new Error(`Expression evaluation failed: ${expression}`);
+        }
     }
 
     // Evaluate postfix expression
@@ -588,6 +616,7 @@ class ImprovedETXScriptParser {
 
     async executeCommand(command) {
         const processedCommand = this.replaceVariables(command);
+        scriptLogger.logCommand(processedCommand);
         await processCommand(processedCommand, true);
     }
 

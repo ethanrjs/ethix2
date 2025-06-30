@@ -7,7 +7,17 @@
     --link-color: #0070f3;
     --error-color: #ff0000;
     --success-color: #50e3c2;
-    --font-mono: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+    --font-mono: 'Berkeley Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+    
+    /* Ethix Theme Colors */
+    --ethix-primary: #50e3c2;
+    --ethix-secondary: #2d3748;
+    --ethix-accent: #4fd1c7;
+    --ethix-dark: #1a202c;
+    --ethix-darker: #0f1419;
+    --ethix-light: #e2e8f0;
+    --ethix-border: #2d3748;
+    --ethix-hover: #38b2ac;
 }
 
 body,
@@ -126,8 +136,8 @@ html {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background-color: #1e1e1e;
-    color: #d4d4d4;
+    background-color: var(--ethix-darker);
+    color: var(--ethix-light);
     font-family: var(--font-mono);
 }
 
@@ -136,8 +146,8 @@ html {
     justify-content: space-between;
     align-items: center;
     padding: 8px 12px;
-    background-color: #2d2d30;
-    border-bottom: 1px solid #3e3e42;
+    background-color: var(--ethix-secondary);
+    border-bottom: 1px solid var(--ethix-border);
     min-height: 32px;
 }
 
@@ -153,7 +163,7 @@ html {
 
 .file-name {
     font-weight: bold;
-    color: #cccccc;
+    color: var(--ethix-primary);
 }
 
 .file-status {
@@ -162,11 +172,11 @@ html {
 }
 
 .file-status.modified {
-    color: #f39c12;
+    color: var(--ethix-accent);
 }
 
 .file-status.saved {
-    color: #27ae60;
+    color: var(--ethix-primary);
 }
 
 .editor-controls {
@@ -176,8 +186,8 @@ html {
 
 .editor-btn {
     background: transparent;
-    border: 1px solid #3e3e42;
-    color: #cccccc;
+    border: 1px solid var(--ethix-border);
+    color: var(--ethix-light);
     padding: 4px 8px;
     border-radius: 3px;
     cursor: pointer;
@@ -186,8 +196,9 @@ html {
 }
 
 .editor-btn:hover {
-    background-color: #3e3e42;
-    border-color: #007acc;
+    background-color: var(--ethix-hover);
+    border-color: var(--ethix-primary);
+    color: var(--ethix-darker);
 }
 
 .editor-body {
@@ -197,14 +208,14 @@ html {
 }
 
 .line-numbers {
-    background-color: #1e1e1e;
-    color: #858585;
+    background-color: var(--ethix-darker);
+    color: var(--ethix-border);
     padding: 10px 8px;
     text-align: right;
     font-size: 13px;
     line-height: 1.4;
-    min-width: 40px;
-    border-right: 1px solid #3e3e42;
+    min-width: 50px;
+    border-right: 1px solid var(--ethix-border);
     user-select: none;
     overflow: hidden;
 }
@@ -259,7 +270,7 @@ html {
     overflow: hidden;
     pointer-events: none;
     z-index: 1;
-    color: #d4d4d4;
+    color: var(--ethix-light);
     box-sizing: border-box;
 }
 
@@ -267,11 +278,12 @@ html {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 4px 12px;
-    background-color: #007acc;
-    color: white;
-    font-size: 11px;
-    min-height: 22px;
+    padding: 6px 12px;
+    background-color: var(--ethix-primary);
+    color: var(--ethix-darker);
+    font-size: 12px;
+    min-height: 28px;
+    font-weight: 500;
 }
 
 .editor-info {
@@ -280,51 +292,52 @@ html {
 }
 
 .editor-shortcuts {
-    font-size: 10px;
-    opacity: 0.8;
+    font-size: 11px;
+    opacity: 0.9;
+    font-weight: 400;
 }
 
-/* ETX Syntax Highlighting */
+/* ETX Syntax Highlighting - Ethix Theme */
 .syntax-comment {
-    color: #6a9955;
+    color: #718096;
     font-style: italic;
 }
 
 .syntax-keyword {
-    color: #569cd6;
+    color: var(--ethix-primary);
     font-weight: bold;
 }
 
 .syntax-command {
-    color: #dcdcaa;
+    color: var(--ethix-accent);
 }
 
 .syntax-variable {
-    color: #9cdcfe;
+    color: #63b3ed;
 }
 
 .syntax-number {
-    color: #b5cea8;
+    color: #68d391;
 }
 
 .syntax-string {
-    color: #ce9178;
+    color: #fbb6ce;
 }
 
 .syntax-operator {
-    color: #d4d4d4;
+    color: var(--ethix-light);
 }
 
 .syntax-bracket {
-    color: #ffd700;
+    color: #ffd89b;
 }
 
 .syntax-boolean {
-    color: #569cd6;
+    color: var(--ethix-primary);
     font-weight: bold;
 }
 
 .syntax-function-call {
-    color: #dcdcaa;
+    color: var(--ethix-accent);
     font-weight: bold;
 }

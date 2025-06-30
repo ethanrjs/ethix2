@@ -162,7 +162,7 @@ async function executeScript(scriptPath) {
     }
 
     addOutputLine({ text: `Executing script: ${scriptPath}`, color: 'cyan' });
-    const result = await improvedScriptParser.executeScript(scriptContent);
+    const result = await improvedScriptParser.executeScript(scriptContent, {}, scriptPath);
     if (result.success) {
         addOutputLine({
             text: `Script execution completed: ${scriptPath}`,

@@ -338,14 +338,24 @@ class EnhancedEditor {
         const output = document.getElementById('output');
         const inputLine = document.getElementById('input-line');
         
-        terminal.innerHTML = '';
-        terminal.appendChild(output);
-        terminal.appendChild(inputLine);
-        
-        // Focus back to input
-        const inputElement = document.getElementById('input');
-        if (inputElement) {
-            inputElement.focus();
+        // Only restore if the elements exist
+        if (terminal && output && inputLine) {
+            terminal.innerHTML = '';
+            terminal.appendChild(output);
+            terminal.appendChild(inputLine);
+            
+            // Restore terminal classes
+            terminal.className = '';
+            
+            // Focus back to input
+            const inputElement = document.getElementById('input');
+            if (inputElement) {
+                inputElement.focus();
+            }
+        } else {
+            // If elements don't exist, reload the page as fallback
+            console.warn('Terminal elements not found, reloading page');
+            window.location.reload();
         }
     }
 
