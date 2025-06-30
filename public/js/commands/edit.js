@@ -1,12 +1,14 @@
 import {
     registerCommand,
     addOutputLine,
-    getCurrentDirectory,
-    enterEditMode,
-    exitEditMode
+    getCurrentDirectory
 } from '../terminal.js';
 import { getFileContents, saveFile } from '../fileSystem.js';
 import { registerCommandDescription } from './help.js';
+import { EnhancedEditor } from '../EnhancedEditor.js';
+
+// Create a global instance of the enhanced editor
+const enhancedEditor = new EnhancedEditor();
 
 registerCommand('edit', 'Edit a file', args => {
     if (args.length < 1) {
@@ -27,9 +29,9 @@ registerCommand('edit', 'Edit a file', args => {
         return;
     }
 
-    enterEditMode(fileName, fileContents, newContents => {
+    // Use the enhanced editor
+    enhancedEditor.show(fileName, fileContents, newContents => {
         saveFile(filePath, newContents);
-        exitEditMode();
         addOutputLine({
             text: `File "${fileName}" saved successfully.`,
             color: 'green'

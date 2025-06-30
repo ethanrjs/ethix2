@@ -120,3 +120,201 @@ html {
     background-color: #333;
     border-radius: 4px;
 }
+
+/* Enhanced Editor Styles */
+#enhanced-editor {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    font-family: var(--font-mono);
+}
+
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: #2d2d30;
+    border-bottom: 1px solid #3e3e42;
+    min-height: 32px;
+}
+
+.editor-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-icon {
+    font-size: 16px;
+}
+
+.file-name {
+    font-weight: bold;
+    color: #cccccc;
+}
+
+.file-status {
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.file-status.modified {
+    color: #f39c12;
+}
+
+.file-status.saved {
+    color: #27ae60;
+}
+
+.editor-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.editor-btn {
+    background: transparent;
+    border: 1px solid #3e3e42;
+    color: #cccccc;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.editor-btn:hover {
+    background-color: #3e3e42;
+    border-color: #007acc;
+}
+
+.editor-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.line-numbers {
+    background-color: #1e1e1e;
+    color: #858585;
+    padding: 10px 8px;
+    text-align: right;
+    font-size: 13px;
+    line-height: 1.4;
+    min-width: 40px;
+    border-right: 1px solid #3e3e42;
+    user-select: none;
+    overflow: hidden;
+}
+
+.line-number {
+    height: 18.2px;
+    padding-right: 8px;
+}
+
+.editor-content {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+#editor-textarea {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    color: transparent;
+    caret-color: #ffffff;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 10px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-x: auto;
+    overflow-y: auto;
+    z-index: 2;
+    box-sizing: border-box;
+}
+
+#syntax-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+    color: #d4d4d4;
+    box-sizing: border-box;
+}
+
+.editor-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 12px;
+    background-color: #007acc;
+    color: white;
+    font-size: 11px;
+    min-height: 22px;
+}
+
+.editor-info {
+    display: flex;
+    gap: 12px;
+}
+
+.editor-shortcuts {
+    font-size: 10px;
+    opacity: 0.8;
+}
+
+/* ETX Syntax Highlighting */
+.syntax-comment {
+    color: #6a9955;
+    font-style: italic;
+}
+
+.syntax-keyword {
+    color: #569cd6;
+    font-weight: bold;
+}
+
+.syntax-command {
+    color: #dcdcaa;
+}
+
+.syntax-variable {
+    color: #9cdcfe;
+}
+
+.syntax-number {
+    color: #b5cea8;
+}
+
+.syntax-string {
+    color: #ce9178;
+}
+
+.syntax-operator {
+    color: #d4d4d4;
+}
+
+.syntax-bracket {
+    color: #ffd700;
+}
