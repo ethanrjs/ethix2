@@ -1,8 +1,4 @@
-import {
-    registerCommand,
-    addOutputLine,
-    getCurrentDirectory
-} from '../terminal.js';
+import { registerCommand, addOutputLine, getCurrentDirectory } from '../terminal.js';
 import {
     createDirectory,
     createFile,
@@ -17,10 +13,7 @@ import { registerCommandDescription } from './help.js';
 async function installPackage(packageNameOrPath) {
     const packagesDir = getDirectoryContents('/packages');
     const currentDir = getCurrentDirectory();
-    const localPackagePath = `${currentDir}/${packageNameOrPath}`.replace(
-        /\/+/g,
-        '/'
-    );
+    const localPackagePath = `${currentDir}/${packageNameOrPath}`.replace(/\/+/g, '/');
     const localPackageContents = getDirectoryContents(localPackagePath);
 
     if (localPackageContents) {
@@ -29,9 +22,7 @@ async function installPackage(packageNameOrPath) {
             color: 'cyan'
         });
 
-        const packageJsonContent = getFileContents(
-            `${localPackagePath}/package.json`
-        );
+        const packageJsonContent = getFileContents(`${localPackagePath}/package.json`);
         if (!packageJsonContent) {
             addOutputLine({
                 text: 'Error: package.json not found in the package directory.',
@@ -53,10 +44,7 @@ async function installPackage(packageNameOrPath) {
 
         createDirectory(`/packages/${packageName}`);
         Object.entries(localPackageContents).forEach(([fileName, fileData]) => {
-            createFile(
-                `/packages/${packageName}/${fileName}`,
-                fileData.content
-            );
+            createFile(`/packages/${packageName}/${fileName}`, fileData.content);
         });
 
         addOutputLine({
@@ -72,9 +60,7 @@ async function installPackage(packageNameOrPath) {
         try {
             const response = await fetch(`/api/packages/${packageNameOrPath}`);
             if (!response.ok) {
-                throw new Error(
-                    `Failed to fetch package information for ${packageNameOrPath}`
-                );
+                throw new Error(`Failed to fetch package information for ${packageNameOrPath}`);
             }
             const packageInfo = await response.json();
 
@@ -91,10 +77,7 @@ async function installPackage(packageNameOrPath) {
                 `/packages/${packageInfo.name}/package.json`,
                 JSON.stringify(packageInfo, null, 2)
             );
-            createFile(
-                `/packages/${packageInfo.name}/index.js`,
-                packageInfo.code
-            );
+            createFile(`/packages/${packageInfo.name}/index.js`, packageInfo.code);
 
             addOutputLine({
                 text: `Package ${packageInfo.name} installed successfully.`,
@@ -206,9 +189,7 @@ async function publishPackage(packageName) {
     });
 
     try {
-        const packageJsonContent = getFileContents(
-            `${packagePath}/package.json`
-        );
+        const packageJsonContent = getFileContents(`${packagePath}/package.json`);
         if (!packageJsonContent) {
             throw new Error('package.json not found in the package directory.');
         }
@@ -252,9 +233,7 @@ async function updatePackage(packageName) {
     try {
         const response = await fetch(`/api/packages/${packageName}`);
         if (!response.ok) {
-            throw new Error(
-                `Package ${packageName} does not exist or repository is down`
-            );
+            throw new Error(`Package ${packageName} does not exist or repository is down`);
         }
         const packageInfo = await response.json();
 
@@ -282,10 +261,7 @@ async function updatePackage(packageName) {
         deleteItem(`/packages/${packageName}`);
 
         createDirectory(`/packages/${packageName}`);
-        createFile(
-            `/packages/${packageName}/package.json`,
-            JSON.stringify(packageInfo, null, 2)
-        );
+        createFile(`/packages/${packageName}/package.json`, JSON.stringify(packageInfo, null, 2));
         createFile(`/packages/${packageName}/index.js`, packageInfo.code);
 
         addOutputLine({
@@ -382,11 +358,7 @@ async function runPackageInitialization(packageName) {
                 const packageExports = await executePkg(terminalAPI)();
 
                 if (typeof packageExports.run === 'function') {
-                    registerCommand(
-                        packageName,
-                        `Run ${packageName} package`,
-                        packageExports.run
-                    );
+                    registerCommand(packageName, `Run ${packageName} package`, packageExports.run);
                     addOutputLine({
                         text: `Registered '${packageName}' as a new command.`,
                         color: 'green'
@@ -410,9 +382,7 @@ async function searchPackages(query) {
     });
 
     try {
-        const response = await fetch(
-            `/api/search-packages?query=${encodeURIComponent(query)}`
-        );
+        const response = await fetch(`/api/search-packages?query=${encodeURIComponent(query)}`);
         if (!response.ok) {
             throw new Error('Failed to fetch search results');
         }

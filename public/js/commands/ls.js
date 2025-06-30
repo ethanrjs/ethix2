@@ -1,8 +1,4 @@
-import {
-    registerCommand,
-    addOutputLine,
-    getCurrentDirectory
-} from '../terminal.js';
+import { registerCommand, addOutputLine, getCurrentDirectory } from '../terminal.js';
 import { getDirectoryContents, resolvePath } from '../fileSystem.js';
 import { registerCommandDescription } from './help.js';
 
@@ -99,9 +95,7 @@ registerCommand('ls', 'List directory contents', args => {
         }, {});
 
         const headerLine = headers
-            .map(header =>
-                padRight(header, maxLengths[header.toLowerCase()] - 1)
-            ) // god only knows why the -1 is needed to fix the name column
+            .map(header => padRight(header, maxLengths[header.toLowerCase()] - 1)) // god only knows why the -1 is needed to fix the name column
             .join(' ');
         addOutputLine(headerLine, { color: 'gray' });
 
@@ -120,10 +114,7 @@ registerCommand('ls', 'List directory contents', args => {
                     color: item.isDirectory ? 'cyan' : 'white'
                 },
                 {
-                    text: padRight(
-                        item.permissions,
-                        maxLengths.permissions + 1
-                    ),
+                    text: padRight(item.permissions, maxLengths.permissions + 1),
                     color: 'gray'
                 },
                 {
@@ -138,10 +129,7 @@ registerCommand('ls', 'List directory contents', args => {
             ]);
         });
     } else {
-        addOutputLine(
-            `ls: cannot access '${path}': No such file or directory`,
-            { color: 'red' }
-        );
+        addOutputLine(`ls: cannot access '${path}': No such file or directory`, { color: 'red' });
     }
 });
 

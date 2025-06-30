@@ -1,9 +1,13 @@
-const express = require('express');
-const path = require('path');
-const rateLimit = require('express-rate-limit');
-const { errorHandler, notFoundHandler } = require('./middleware/errorHandlers');
-const routes = require('./routes');
-const packageRepository = require('./package-repository');
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import rateLimit from 'express-rate-limit';
+import { errorHandler, notFoundHandler } from './middleware/errorHandlers.js';
+import routes from './routes.js';
+import packageRepository from './package-repository.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -43,4 +47,4 @@ async function startServer() {
 
 startServer();
 
-module.exports = app;
+export default app;

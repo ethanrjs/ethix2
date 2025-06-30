@@ -56,12 +56,8 @@ function parseColoredText(text) {
     return segments;
 }
 
-registerCommand(
-    'echo',
-    'Print arguments to the terminal with optional color formatting',
-    args => {
-        const fullText = args.join(' ');
-        const segments = parseColoredText(fullText);
-        addOutputLine(segments.filter(segment => segment.text));
-    }
-);
+registerCommand('echo', 'Print arguments to the terminal with optional color formatting', args => {
+    const fullText = args.join(' ');
+    const segments = parseColoredText(fullText);
+    addOutputLine(segments.filter(segment => segment.text));
+});

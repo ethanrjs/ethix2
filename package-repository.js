@@ -1,6 +1,10 @@
-const fs = require('fs').promises;
-const path = require('path');
-const semver = require('semver');
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import semver from 'semver';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class PackageRepository {
     constructor() {
@@ -42,10 +46,7 @@ class PackageRepository {
     async savePackage(packageInfo) {
         try {
             const [name, version] = packageInfo.name.split('@');
-            const filePath = path.join(
-                this.packagesDir,
-                `${name}@${version}.json`
-            );
+            const filePath = path.join(this.packagesDir, `${name}@${version}.json`);
             await fs.writeFile(filePath, JSON.stringify(packageInfo, null, 2));
             if (!this.packages[name]) {
                 this.packages[name] = {};
@@ -87,10 +88,7 @@ class PackageRepository {
                 throw new Error('Package not found');
             }
             if (version) {
-                const filePath = path.join(
-                    this.packagesDir,
-                    `${name}@${version}.json`
-                );
+                const filePath = path.join(this.packagesDir, `${name}@${version}.json`);
                 await fs.unlink(filePath);
                 delete this.packages[name][version];
                 if (Object.keys(this.packages[name]).length === 0) {
@@ -99,10 +97,7 @@ class PackageRepository {
             } else {
                 const versions = Object.keys(this.packages[name]);
                 for (const v of versions) {
-                    const filePath = path.join(
-                        this.packagesDir,
-                        `${name}@${v}.json`
-                    );
+                    const filePath = path.join(this.packagesDir, `${name}@${v}.json`);
                     await fs.unlink(filePath);
                 }
                 delete this.packages[name];
@@ -116,4 +111,4 @@ class PackageRepository {
 
 const packageRepository = new PackageRepository();
 
-module.exports = packageRepository;
+export default packageRepository;

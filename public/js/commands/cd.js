@@ -1,8 +1,4 @@
-import {
-    registerCommand,
-    addOutputLine,
-    setCurrentDirectory
-} from '../terminal.js';
+import { registerCommand, addOutputLine, setCurrentDirectory } from '../terminal.js';
 import { getDirectoryContents, resolvePath } from '../fileSystem.js';
 import { registerCommandDescription } from './help.js';
 

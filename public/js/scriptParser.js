@@ -40,11 +40,7 @@ class ETXScriptParser {
         }
 
         if (condition) {
-            for (
-                let i = startIndex + 1;
-                i < (elseIndex !== -1 ? elseIndex : endIndex);
-                i++
-            ) {
+            for (let i = startIndex + 1; i < (elseIndex !== -1 ? elseIndex : endIndex); i++) {
                 i = await this.executeLine(lines[i].trim(), i, lines);
             }
         } else if (elseIndex !== -1) {
@@ -103,9 +99,7 @@ class ETXScriptParser {
 
     customEval(expression) {
         const tokens =
-            expression.match(
-                /(\d+|\w+|\+|\-|\*|\/|\(|\)|<=|>=|==|!=|<|>|&&|\|\|)/g
-            ) || [];
+            expression.match(/(\d+|\w+|\+|\-|\*|\/|\(|\)|<=|>=|==|!=|<|>|&&|\|\|)/g) || [];
         const output = [];
         const operators = [];
         const precedence = {
@@ -131,18 +125,14 @@ class ETXScriptParser {
             } else if (token === '(') {
                 operators.push(token);
             } else if (token === ')') {
-                while (
-                    operators.length &&
-                    operators[operators.length - 1] !== '('
-                ) {
+                while (operators.length && operators[operators.length - 1] !== '(') {
                     output.push(operators.pop());
                 }
                 operators.pop();
             } else if (token in precedence) {
                 while (
                     operators.length &&
-                    precedence[operators[operators.length - 1]] >=
-                        precedence[token]
+                    precedence[operators[operators.length - 1]] >= precedence[token]
                 ) {
                     output.push(operators.pop());
                 }

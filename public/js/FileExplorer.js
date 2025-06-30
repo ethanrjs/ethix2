@@ -32,9 +32,7 @@ export class FileExplorer {
         this.container.appendChild(header);
 
         if (this.currentPath !== '/') {
-            const upButton = this.createItem('..', 'folder', () =>
-                this.navigateUp()
-            );
+            const upButton = this.createItem('..', 'folder', () => this.navigateUp());
             this.container.appendChild(upButton);
         }
 
@@ -73,17 +71,13 @@ export class FileExplorer {
         if (type === 'directory') {
             this.navigate(name);
         } else {
-            const filePath = this.fileSystem.resolvePath(
-                `${this.currentPath}/${name}`
-            );
+            const filePath = this.fileSystem.resolvePath(`${this.currentPath}/${name}`);
             this.editCallback(filePath);
         }
     }
 
     navigate(name) {
-        const newPath = this.fileSystem.resolvePath(
-            `${this.currentPath}/${name}`
-        );
+        const newPath = this.fileSystem.resolvePath(`${this.currentPath}/${name}`);
         if (this.fileSystem.getDirectoryContents(newPath)) {
             this.currentPath = newPath;
             this.render();
@@ -91,9 +85,7 @@ export class FileExplorer {
     }
 
     navigateUp() {
-        const parentPath = this.fileSystem.resolvePath(
-            `${this.currentPath}/..`
-        );
+        const parentPath = this.fileSystem.resolvePath(`${this.currentPath}/..`);
         if (parentPath !== this.currentPath) {
             this.currentPath = parentPath;
             this.render();

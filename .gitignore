@@ -1,2 +1,9 @@
 node_modules
 packages/*
+.bun-cache/
+dist/
+coverage/
+test-reports/
+test-temp/
+test-packages/
+*.log

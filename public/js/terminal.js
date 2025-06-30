@@ -29,11 +29,7 @@ function handleFileEdit(filePath) {
     console.log(`Typed edit ${filePath}`);
 }
 
-const fileExplorer = new FileExplorer(
-    fileSystem,
-    fileExplorerContainer,
-    handleFileEdit
-);
+const fileExplorer = new FileExplorer(fileSystem, fileExplorerContainer, handleFileEdit);
 
 function toggleExplorer() {
     fileExplorer.toggle();
@@ -292,9 +288,7 @@ function handleArrowDownKey(e) {
     if (state.historyIndex > -1) {
         state.historyIndex--;
         inputElement.textContent =
-            state.historyIndex === -1
-                ? ''
-                : state.commandHistory[state.historyIndex];
+            state.historyIndex === -1 ? '' : state.commandHistory[state.historyIndex];
         moveCursorToEnd();
     }
 }
@@ -432,16 +426,13 @@ export function enterEditMode(fileName, initialContent, saveCallback) {
 
     editorTextarea.focus();
 
-    editorTextarea.addEventListener('keydown', e =>
-        handleEditorKeyDown(e, saveCallback)
-    );
+    editorTextarea.addEventListener('keydown', e => handleEditorKeyDown(e, saveCallback));
 }
 
 function createEditorContainer(fileName) {
     const container = document.createElement('div');
     container.id = 'editor-container';
-    container.style.cssText =
-        'height: 100%; display: flex; flex-direction: column;';
+    container.style.cssText = 'height: 100%; display: flex; flex-direction: column;';
     return container;
 }
 

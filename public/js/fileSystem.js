@@ -112,12 +112,7 @@ class FileSystem {
         const itemName = parts.pop();
         const parent = this.traversePath(parts.join('/'));
 
-        if (
-            !parent ||
-            parent.type !== 'directory' ||
-            !parent.contents[itemName]
-        )
-            return false;
+        if (!parent || parent.type !== 'directory' || !parent.contents[itemName]) return false;
 
         delete parent.contents[itemName];
         this.save();
@@ -133,8 +128,7 @@ class FileSystem {
 const fileSystem = new FileSystem();
 
 export const saveFileSystem = fileSystem.save.bind(fileSystem);
-export const getDirectoryContents =
-    fileSystem.getDirectoryContents.bind(fileSystem);
+export const getDirectoryContents = fileSystem.getDirectoryContents.bind(fileSystem);
 export const createDirectory = fileSystem.createDirectory.bind(fileSystem);
 export const createFile = fileSystem.createFile.bind(fileSystem);
 export const getFileContents = fileSystem.getFileContents.bind(fileSystem);

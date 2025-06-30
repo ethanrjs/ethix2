@@ -1,10 +1,14 @@
-const express = require('express');
-const packageRepository = require('./package-repository');
-const cache = require('./utils/cache');
-const { asyncHandler } = require('./middleware/asyncHandler');
-const fs = require('fs').promises;
-const path = require('path');
-const Fuse = require('fuse.js');
+import express from 'express';
+import packageRepository from './package-repository.js';
+import cache from './utils/cache.js';
+import { asyncHandler } from './middleware/asyncHandler.js';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import Fuse from 'fuse.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
@@ -15,12 +19,7 @@ router.get(
         let jsFiles = cache.get(cacheKey);
 
         if (jsFiles == undefined) {
-            const commandsDir = path.join(
-                __dirname,
-                'public',
-                'js',
-                'commands'
-            );
+            const commandsDir = path.join(__dirname, 'public', 'js', 'commands');
             const files = await fs.readdir(commandsDir);
             jsFiles = files.filter(file => file.endsWith('.js'));
             cache.set(cacheKey, jsFiles);
@@ -81,9 +80,7 @@ router.post(
             `${packageInfo.name}@${packageInfo.version}`
         );
         if (existingPackage) {
-            return res
-                .status(401)
-                .json({ error: 'Package with this version already exists' });
+            return res.status(401).json({ error: 'Package with this version already exists' });
         }
 
         packageInfo.name = `${packageInfo.name}@${packageInfo.version}`;
@@ -146,6 +143,4 @@ router.get(
     })
 );
 
-module.exports = router;
-
-module.exports = router;
+export default router;

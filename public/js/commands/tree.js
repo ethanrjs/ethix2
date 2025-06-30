@@ -1,8 +1,4 @@
-import {
-    registerCommand,
-    addOutputLine,
-    getCurrentDirectory
-} from '../terminal.js';
+import { registerCommand, addOutputLine, getCurrentDirectory } from '../terminal.js';
 import { getDirectoryContents } from '../fileSystem.js';
 import { registerCommandDescription } from './help.js';
 
@@ -19,13 +15,7 @@ const STYLES = {
     italic: 'italic'
 };
 
-function getTree(
-    path,
-    prefix = '',
-    isLast = true,
-    maxDepth = Infinity,
-    currentDepth = 0
-) {
+function getTree(path, prefix = '', isLast = true, maxDepth = Infinity, currentDepth = 0) {
     if (currentDepth > maxDepth) {
         return { output: [], dirCount: 0, fileCount: 0 };
     }

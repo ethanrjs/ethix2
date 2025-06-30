@@ -39,8 +39,7 @@ class TerminalAPI {
             segments.map(segment => ({
                 ...segment,
                 color: options.color || segment.color,
-                backgroundColor:
-                    options.backgroundColor || segment.backgroundColor,
+                backgroundColor: options.backgroundColor || segment.backgroundColor,
                 style: options.style || segment.style
             }))
         );
